@@ -12,7 +12,7 @@ React + TypeScript (PWA) · Postgres/Supabase with RLS · Deno Edge Functions ·
 
 <sub>The app's interface is in Portuguese. All screens use fictional data.</sub>
 
-> Public showcase. Development happens in a private repository since 16/11/2026 (19 commits as of this update); this one holds the code, the decision documents and the screens, without personal content.
+> Public showcase. Development happens in a private repository since November 16, 2026 (20 commits as of this update); this one holds the code, the decision documents and the screens, without personal content.
 
 ## The problem
 
