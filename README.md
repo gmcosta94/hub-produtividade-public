@@ -1,124 +1,126 @@
-# Hub de Produtividade
+# Productivity Hub
 
-**Um sistema pessoal de planejamento e hábitos, com as regras de negócio escritas em SQL e um assistente de IA que lê tudo e só propõe.**
+**English** | [Português](README.pt-BR.md)
 
-React + TypeScript (PWA) · Postgres/Supabase com RLS · Edge Functions em Deno · Claude API · Cloudflare
+**A personal planning and habits system, with its business rules written in SQL and an AI assistant that reads everything and only proposes changes.**
 
-> **In English:** a personal planning and habits hub. It connects life areas, a long-term vision, cycle/week/day planning, tasks, notes and focus sessions in one flow. Business rules (limits, weekly goals, capacity) live in Postgres as views, functions and triggers, protected by row-level security. A React PWA reads the views; a Claude-powered assistant reads everything and only *proposes* changes, which the user accepts or rejects. Built in a few days, docs-first, with Claude Code as a pair programmer. Screens below use fictional data.
+React + TypeScript (PWA) · Postgres/Supabase with RLS · Deno Edge Functions · Claude API · Cloudflare
 
 <p align="center">
-  <img src="docs/imagens/plano-semana.png" alt="Plano semanal: objetivos do ciclo no alto e quadro Backlog, A fazer, Fazendo e Feito" width="860">
+  <img src="docs/imagens/plano-semana.png" alt="Weekly plan: cycle goals at the top and a Backlog, To do, Doing and Done board" width="860">
 </p>
 
-> Vitrine pública. O desenvolvimento acontece num repositório privado desde 16/11/2026 (18 commits até esta atualização); aqui ficam o código, os documentos de decisão e as telas, sem o conteúdo pessoal.
+<sub>The app's interface is in Portuguese. All screens use fictional data.</sub>
 
-## O problema
+> Public showcase. Development happens in a private repository since 16/11/2026 (19 commits as of this update); this one holds the code, the decision documents and the screens, without personal content.
 
-Tarefas num app, hábitos num caderno, horas de foco em outro, notas soltas, metas espalhadas por planilhas. Cada ferramenta funciona sozinha, e nenhuma conversa com a outra. Pior: somando as regras de vários métodos de produtividade, o plano pedia dezenas de metas por mês. Cada uma cabia sozinha; o conjunto, não.
+## The problem
 
-O hub parte de uma ideia simples: **mapear tudo e se comprometer com pouco.** Ele guarda o mapa inteiro, mas limita quantas coisas podem estar em jogo ao mesmo tempo. Quando um limite é atingido, o banco recusa em vez de aceitar mais uma.
+Tasks in one app, habits in a paper notebook, focus hours somewhere else, loose notes, goals scattered across spreadsheets. Each tool works on its own, and none of them talk to each other. Worse: stacking the rules of several productivity methods produced dozens of goals per month. Each one fit on its own; together, they didn't.
 
-## O fluxo
+The hub starts from a simple idea: **map everything, commit to little.** It keeps the whole map, but limits how many things can be in play at the same time. When a limit is reached, the database refuses instead of accepting one more.
 
-Tudo no hub é um fluxo só: o plano desce de escala, do longo prazo até a sessão de foco, e a revisão sobe.
+## The flow
+
+Everything in the hub is a single flow: planning goes down in scale, from the long term to the focus session, and review goes back up.
 
 ```mermaid
 flowchart TB
-  subgraph Sistema["Sistema: regras e limites em cada escala"]
+  subgraph System["System: rules and limits at every scale"]
     direction TB
-    Areas[Áreas da vida] --> Visao[Visão de longo prazo]
-    Areas --> Habitos[Hábitos]
-    Visao --> Ciclo[Plano do ciclo<br/>única coisa e objetivos]
-    Ciclo --> Semana[Plano semanal<br/>quadro e capacidade]
-    Semana --> Dia[Plano do dia<br/>destaque e espaços]
-    Dia --> Foco[Sessões de foco]
-    Ciclo --> Projetos
-    Projetos --> Tarefas
-    Captura --> Tarefas
-    Captura --> Notas
-    Tarefas --> Semana
-    Habitos --> Dia
-    Foco -. revisão .-> Dia
-    Dia -. revisão .-> Semana
-    Semana -. revisão .-> Ciclo
+    Areas[Life areas] --> Vision[Long-term vision]
+    Areas --> Habits[Habits]
+    Vision --> Cycle[Cycle plan<br/>one thing and goals]
+    Cycle --> Week[Weekly plan<br/>board and capacity]
+    Week --> Day[Daily plan<br/>highlight and slots]
+    Day --> Focus[Focus sessions]
+    Cycle --> Projects
+    Projects --> Tasks
+    Capture --> Tasks
+    Capture --> Notes
+    Tasks --> Week
+    Habits --> Day
+    Focus -. review .-> Day
+    Day -. review .-> Week
+    Week -. review .-> Cycle
   end
 ```
 
-Cada elo se apoia num autor (Cal Newport, Gary Keller, Tiago Forte, David Allen, James Clear, entre outros), e a tela Sistema explica o mapa: o que cada parte faz, de onde vem na teoria, com o que se liga, onde entra a escolha da pessoa e quais regras valem.
+Each link rests on an author (Cal Newport, Gary Keller, Tiago Forte, David Allen, James Clear, among others), and the System screen explains the map: what each part does, where it comes from in theory, what it connects to, where the user's own choices come in and which rules apply.
 
-## Telas
+## Screens
 
 | | |
 |---|---|
-| ![Hoje no computador](docs/imagens/hoje-computador.png) | ![Sistema: o mapa do hub](docs/imagens/sistema-mapa.png) |
-| **Hoje**: tamanho do dia, a única coisa, espaços de tarefa contados, hábitos por peso e sessão de foco. | **Sistema**: a "Constituição" do hub como mapa clicável, com a base teórica de cada parte e os limites editáveis. |
-| ![Semana base do ciclo](docs/imagens/ciclo-semana-base.png) | ![Conferência do ciclo](docs/imagens/ciclo-conferencia.png) |
-| **Plano do ciclo, passo 1**: a semana base. Os blocos reservados ao ciclo viram a capacidade da semana. | **Plano do ciclo, passo 6**: cada regra do Sistema conferida contra o plano, calculada no banco. |
+| ![Today on desktop](docs/imagens/hoje-computador.png) | ![System: the hub map](docs/imagens/sistema-mapa.png) |
+| **Today**: day size, the one thing, a capped number of task slots, habits by weight and a focus session. | **System**: the hub's "Constitution" as a clickable map, with the theory behind each part and editable limits. |
+| ![The cycle's base week](docs/imagens/ciclo-semana-base.png) | ![Cycle check](docs/imagens/ciclo-conferencia.png) |
+| **Cycle plan, step 1**: the base week. Blocks reserved for the cycle become the week's capacity. | **Cycle plan, step 6**: every System rule checked against the plan, computed in the database. |
 
 <p align="center">
-  <img src="docs/imagens/historico-de-foco.png" alt="Histórico de horas de foco e estudo por semana" width="860">
+  <img src="docs/imagens/historico-de-foco.png" alt="Weekly focus and study hours" width="860">
 </p>
 
-**Histórico de foco e estudo**: horas por semana, por tipo e por área, com a parte feita em sessões longas.
+**Focus and study history**: hours per week, by type and by area, with the share done in long sessions.
 
 <p align="center">
-  <img src="docs/imagens/hoje-celular.png" alt="Hoje no celular" width="260">
+  <img src="docs/imagens/hoje-celular.png" alt="Today on mobile" width="260">
   &nbsp;&nbsp;
-  <img src="docs/imagens/habitos-celular.png" alt="Hábitos no celular" width="260">
+  <img src="docs/imagens/habitos-celular.png" alt="Habits on mobile" width="260">
 </p>
 
-No celular, o app é instalável (PWA), com abas no rodapé e uma coluna por vez.
+On mobile, the app is installable (PWA), with a bottom tab bar and one column at a time.
 
-## Decisões de engenharia
+## Engineering decisions
 
-**Regra de negócio mora no banco.** O app não decide se um dia conta para a meta da semana, se cabe mais uma área em foco ou quantas horas o ciclo tem. Isso é SQL: views para leitura, funções para escrita e gatilhos para os limites. O app lê `v_*`, chama funções e, quando o banco recusa com `raise exception`, mostra a mensagem que já vem escrita para a pessoa.
+**Business rules live in the database.** The app doesn't decide whether a day counts toward a weekly habit goal, whether another area fits in focus, or how many hours a cycle has. That is SQL: views for reading, functions for writing and triggers for limits. The app reads `v_*` views, calls functions and, when the database refuses with `raise exception`, shows the message it returns, already written for the user.
 
-- 14 migrations numeradas, sem ORM: 22 tabelas, 10 views, 37 funções e 12 gatilhos.
-- Toda tabela tem row-level security; sem login, a API não lê nada.
-- Exemplos de regra: no máximo 2 áreas em foco e 2 objetivos por área, no máximo 3 tarefas em "Fazendo", tarefa com dia no passado volta para o mapa em vez de virar "atrasada", e a capacidade da semana é a soma dos blocos reservados ao ciclo (mantida por gatilho).
-- `conferir_ciclo()` devolve cada regra do Sistema com valor, limite e se está dentro: a tela de conferência só desenha o resultado.
+- 14 numbered migrations, no ORM: 22 tables, 10 views, 37 functions and 12 triggers.
+- Every table has row-level security; without a login, the API reads nothing.
+- Examples of rules: at most 2 areas in focus and 2 goals per area, at most 3 tasks in "Doing", a task whose day has passed goes back to the map instead of becoming "overdue", and the week's capacity is the sum of the blocks reserved for the cycle (kept in sync by a trigger).
+- `conferir_ciclo()` returns every System rule with its value, its limit and whether it holds: the check screen only draws the result.
 
-**Uma camada semântica para pessoas e para a IA.** As mesmas views que a tela usa alimentam o assistente: `revisao_da_semana()` devolve a semana inteira em JSON, e a meta semanal de um hábito tem uma única definição (`v_habito_registro`), usada por todos.
+**One semantic layer for people and for the AI.** The same views the screens use feed the assistant: `revisao_da_semana()` returns the whole week as JSON, and a habit's weekly goal has a single definition (`v_habito_registro`), used everywhere.
 
-**Um assistente que propõe, não executa.** Duas Edge Functions (Deno + TypeScript) usam a Claude API:
+**An assistant that proposes, never executes.** Two Edge Functions (Deno + TypeScript) call the Claude API:
 
-- **Revisão da semana**: saída estruturada (JSON Schema), validada antes de chegar à tela. No máximo 3 observações e 3 propostas, todo número citado precisa existir nos dados, e os ids e valores propostos são conferidos contra o catálogo.
-- **Conversa**: 9 ferramentas de leitura com esquema estrito (semana, área, hábito, foco, projeto, notas, Sistema...) e uma ferramenta `propor`. O laço tem limite de rodadas, e o histórico é guardado exatamente como volta da API.
-- Nada muda no hub sem a pessoa aceitar: a proposta vira mudança por `decidir_proposta()`, com o login de quem decide, e os gatilhos de limite continuam valendo.
-- A chave da API fica só nos segredos do Supabase; a autenticação é conferida no código da função.
+- **Weekly review**: structured output (JSON Schema), validated before it reaches the screen. At most 3 observations and 3 proposals, every number quoted must exist in the data, and proposed ids and values are checked against the catalog.
+- **Chat**: 9 read tools with strict schemas (week, area, habit, focus, project, notes, System...) and a `propose` tool. The loop has a round limit, and the history is stored exactly as the API returns it.
+- Nothing changes in the hub until the user accepts: a proposal becomes a change through `decidir_proposta()`, with the login of whoever decides, and the limit triggers still apply.
+- The API key lives only in Supabase secrets; authentication is checked in the function code.
 
-**Leveza como requisito de produto.** Toda função nova passa por uma pergunta: ela reduz compromissos simultâneos ou acrescenta cobrança? Por isso não há sequência de dias a quebrar, existe o "dia mínimo", a versão mínima de um hábito conta, e o plano usa só 70% das horas livres.
+**Lightness as a product requirement.** Every new feature goes through one question: does it reduce simultaneous commitments, or does it add pressure? That's why there are no streaks to break, there is a "minimum day", a habit's minimum version counts, and the plan only uses 70% of the free hours.
 
-## Como o projeto é tocado
+## How the project is run
 
-- **Docs primeiro.** Antes do código, um briefing e as decisões em [`docs/`](docs): o modelo de dados, a ordem de construção, a integração entre módulos, a arquitetura do assistente e o fluxo ajustado. Quando uma decisão muda, o documento muda junto.
-- **Largura antes de profundidade.** Primeiro todos os módulos em corte mínimo e ligados entre si; depois o aprofundamento de cada um. Um módulo perfeito e isolado é só mais um lugar para registrar.
-- **Ciclos curtos com o usuário real.** Cada lote é testado no banco local e no navegador (computador e celular, claro e escuro), mostrado localmente e só então publicado. O feedback de uso vira o próximo lote.
-- **Par de programação com IA.** O projeto é feito com o [Claude Code](https://claude.com/claude-code): eu defino o produto, as regras e a ordem, e reviso o que entra; o agente implementa, testa e documenta. Os commits registram a coautoria.
-- **Dados pessoais fora do repositório.** Conteúdo pessoal fica no banco e numa pasta fora do git; o repositório tem só estrutura, e as telas acima usam dados fictícios.
+- **Docs first.** Before code, a brief and the decisions in [`docs/`](docs) (in Portuguese): the data model, the build order, how modules connect, the assistant's architecture and the adjusted flow. When a decision changes, the document changes with it.
+- **Breadth before depth.** First every module in a minimal cut, connected to the others; then each one gets deeper. A perfect, isolated module is just one more place to log things.
+- **Short cycles with the real user.** Each batch is tested on the local database and in the browser (desktop and mobile, light and dark), shown locally and only then published. Usage feedback becomes the next batch.
+- **Pair programming with AI.** The project is built with [Claude Code](https://claude.com/claude-code): I define the product, the rules and the order, and review what goes in; the agent implements, tests and documents. Commits record the co-authorship.
+- **Personal data stays out of the repository.** Personal content lives in the database and in a folder outside git; the repository only holds structure, and the screens above use fictional data.
 
 ## Stack
 
-| Camada | Escolha |
+| Layer | Choice |
 |---|---|
-| Banco e regras | Postgres (Supabase): migrations em SQL, views com `security_invoker`, funções plpgsql, gatilhos, RLS |
-| App | React 19, TypeScript, Vite, PWA (vite-plugin-pwa), CSS próprio com tema claro e escuro |
-| IA | Claude API em Supabase Edge Functions (Deno): saídas estruturadas, ferramentas com esquema estrito, cache de prompt |
-| Publicação | Cloudflare Workers (arquivos estáticos), a cada push na `main`; migrations com `supabase db push` |
-| Qualidade | `tsc`, oxlint, Prettier; backup com restauração de teste (`scripts/backup.sh --testar`) |
+| Database and rules | Postgres (Supabase): SQL migrations, views with `security_invoker`, plpgsql functions, triggers, RLS |
+| App | React 19, TypeScript, Vite, PWA (vite-plugin-pwa), hand-written CSS with light and dark themes |
+| AI | Claude API on Supabase Edge Functions (Deno): structured outputs, strict-schema tools, prompt caching |
+| Deployment | Cloudflare Workers (static assets) on every push to `main`; migrations with `supabase db push` |
+| Quality | `tsc`, oxlint, Prettier; backups with a test restore (`scripts/backup.sh --testar`) |
 
 ```
-app/                  o app (telas em src/telas, peças comuns em src/componentes)
-supabase/migrations/  o banco, em SQL numerado
-supabase/functions/   o assistente (revisão da semana e conversa)
-supabase/seed.sql     áreas e limites iniciais
-scripts/              carga de conteúdo, emendas em lote, backup
-docs/                 decisões e especificações
+app/                  the app (screens in src/telas, shared pieces in src/componentes)
+supabase/migrations/  the database, as numbered SQL
+supabase/functions/   the assistant (weekly review and chat)
+supabase/seed.sql     initial areas and limits
+scripts/              content loading, batch amendments, backup
+docs/                 decisions and specifications
 ```
 
-## Rodar localmente
+## Running locally
 
-Precisa de Docker (ou Colima), do Supabase CLI e do Node.
+Requires Docker (or Colima), the Supabase CLI and Node.
 
 ```bash
 supabase start
@@ -128,16 +130,16 @@ npm --prefix app install
 npm --prefix app run dev
 ```
 
-O app abre em `http://localhost:5174`, apontando para o banco local, com um usuário de teste criado pelo script.
+The app opens at `http://localhost:5174`, pointing to the local database, with a test user created by the script.
 
-## Documentos
+## Documents (in Portuguese)
 
-- [`docs/06-fluxo-ajustado.md`](docs/06-fluxo-ajustado.md): o fluxo atual, as fases feitas e as próximas.
-- [`docs/05-assistente.md`](docs/05-assistente.md): a arquitetura do assistente de IA.
-- [`docs/04-integracao.md`](docs/04-integracao.md): o que liga os módulos.
-- [`docs/02-modelo-de-dados.md`](docs/02-modelo-de-dados.md): tabelas e convenções.
-- [`CLAUDE.md`](CLAUDE.md): as regras do projeto, para pessoas e para o agente.
+- [`docs/06-fluxo-ajustado.md`](docs/06-fluxo-ajustado.md): the current flow, the phases done and the next ones.
+- [`docs/05-assistente.md`](docs/05-assistente.md): the AI assistant's architecture.
+- [`docs/04-integracao.md`](docs/04-integracao.md): what connects the modules.
+- [`docs/02-modelo-de-dados.md`](docs/02-modelo-de-dados.md): tables and conventions.
+- [`CLAUDE.md`](CLAUDE.md): the project rules, for people and for the agent.
 
-## Estado
+## Status
 
-Em uso e em construção. Próximos passos: blocos de tempo no dia saindo da semana base, sessões de foco ligadas às tarefas e revisões amarradas (fim do dia, sexta e fim do ciclo) com o assistente.
+In use and under construction. Next steps: time blocks in the day drawn from the base week, focus sessions linked to tasks, and connected reviews (end of day, Friday and end of cycle) with the assistant.
