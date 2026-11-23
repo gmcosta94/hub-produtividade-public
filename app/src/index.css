@@ -1,0 +1,3442 @@
+/* Direção visual "Gelo e petróleo" (17/11/2026), irmã do hub financeiro:
+   neutros iguais aos de lá, cor por grupo de telas e o âmbar só para a única coisa do dia. */
+:root {
+  --fundo: #f1f3f5;
+  --cartao: #ffffff;
+  --texto: #1a1d21;
+  --suave: #5f6670;
+  --linha: #e2e5e9;
+  --anel: #c3c8cf;
+  --controle: #eef0f3;
+  --mudo: #8a9099;
+
+  /* Cor de cada grupo de telas: dia a dia em petróleo, reflexão em índigo, Sistema em grafite.
+     Cada tela usa a do seu grupo em --destaque (ver .conteudo.grupo-*). */
+  --grupo-dia: #1f5c6b;
+  --grupo-reflexao: #4b52b8;
+  --grupo-sistema: #3b4a5c;
+  --destaque: var(--grupo-dia);
+  --sobre-destaque: #ffffff;
+  --destaque-leve: #dcebec;
+  --texto-destaque-leve: #174754;
+
+  /* A única coisa do dia */
+  --ambar: #e9a23b;
+  --ambar-leve: #fbeed6;
+  --ambar-tinta: #7a4a08;
+
+  --alerta: #a8402b;
+  --serie-foco: #1478a0;
+  --serie-estudo: #c76a12;
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #121416;
+    --cartao: #1c1f23;
+    --texto: #eef0f2;
+    --suave: #9aa1a9;
+    --linha: #2e3338;
+    --anel: #474d54;
+    --controle: #2a2e33;
+    --mudo: #8a9099;
+    --grupo-dia: #6db7c4;
+    --grupo-reflexao: #a3aaf0;
+    --grupo-sistema: #b6c2d1;
+    --sobre-destaque: #121416;
+    --destaque-leve: #183238;
+    --texto-destaque-leve: #b9e0e6;
+    --ambar: #edb25c;
+    --ambar-leve: #2e2414;
+    --ambar-tinta: #f2c987;
+    --alerta: #f08a6b;
+    --serie-foco: #2a93c2;
+    --serie-estudo: #d77a22;
+  }
+}
+
+/* Cada grupo de telas usa a sua cor nos botões, seletores e marcações. */
+.grupo-reflexao {
+  --destaque: var(--grupo-reflexao);
+  --destaque-leve: #e3e5f7;
+  --texto-destaque-leve: #2f3484;
+}
+
+.grupo-sistema {
+  --destaque: var(--grupo-sistema);
+  --destaque-leve: #e4e8ed;
+  --texto-destaque-leve: #2b3644;
+}
+
+@media (prefers-color-scheme: dark) {
+  .grupo-reflexao {
+    --destaque-leve: #262a4a;
+    --texto-destaque-leve: #c9cdf7;
+  }
+
+  .grupo-sistema {
+    --destaque-leve: #2a3038;
+    --texto-destaque-leve: #d5dce5;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  /* respeita o entalhe e a barra do iPhone quando instalado */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-weight: 600;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--destaque);
+  outline-offset: 2px;
+}
+
+.erro {
+  color: var(--alerta);
+}
+
+.vazio {
+  color: var(--suave);
+  text-align: center;
+  padding: 32px 0;
+}
+
+.titulo-tela {
+  font-size: 1.25rem;
+}
+
+/* Login */
+.login {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+
+.login h1 {
+  font-size: 1.6rem;
+}
+
+.login form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--suave);
+}
+
+.login input {
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--cartao);
+  color: var(--texto);
+}
+
+.login button {
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  font-weight: 600;
+}
+
+/* Navegação e rodapé */
+.navegacao {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 16px 0;
+}
+
+.segmentos {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--linha);
+}
+
+.segmentos button {
+  flex: 1;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--suave);
+  font-size: 0.95rem;
+}
+
+.segmentos button.ativo {
+  background: var(--cartao);
+  color: var(--texto);
+  font-weight: 600;
+}
+
+.rodape {
+  max-width: 640px;
+  margin: 24px auto 0;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+.rodape button,
+button.link {
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  color: var(--destaque);
+  text-decoration: underline;
+  font-size: 0.85rem;
+}
+
+/* Hábitos: um box por linha, o do dia selecionado */
+.habitos .semana {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.habitos .semana > button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  background: var(--cartao);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.habitos .semana > button:disabled {
+  color: var(--suave);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dia-em-tela {
+  margin: 2px 0 0;
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+.dias {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.dias.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 0;
+  background: var(--fundo);
+}
+
+.dias.cabecalho button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 6px 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--suave);
+  font-size: 0.8rem;
+  line-height: 1.2;
+  touch-action: manipulation;
+}
+
+.dias.cabecalho small {
+  font-size: 0.75rem;
+}
+
+.dias.cabecalho .hoje {
+  color: var(--destaque);
+  font-weight: 700;
+}
+
+.dias.cabecalho .selecionado {
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  font-weight: 600;
+}
+
+.dias.cabecalho button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.habitos section {
+  margin-top: 14px;
+}
+
+.habitos section > h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--suave);
+  margin: 0 0 6px 2px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cartao);
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 8px 8px 8px 12px;
+  margin-bottom: 6px;
+}
+
+.linha .rotulo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.linha .nome {
+  font-size: 0.95rem;
+}
+
+.linha .nome small {
+  margin-left: 8px;
+  color: var(--suave);
+  font-size: 0.8rem;
+}
+
+.linha .na-semana {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 12px;
+}
+
+.linha .resumo {
+  color: var(--suave);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A semana do hábito em sete quadradinhos, de domingo a sábado */
+.marcas {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.marcas i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: var(--linha);
+}
+
+.marcas i.feito {
+  background: var(--destaque);
+}
+
+.marcas i.minimo {
+  background: var(--destaque-leve);
+  box-shadow: inset 0 0 0 1px var(--destaque);
+}
+
+.marcas i.numero,
+.marcas i.dispensado {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--suave);
+}
+
+.marcas i.dispensado {
+  opacity: 0.5;
+}
+
+.marcas i.atual {
+  outline: 1px solid var(--suave);
+  outline-offset: 1px;
+}
+
+.celula {
+  flex: none;
+  width: 60px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--texto);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  /* o toque longo abre a folha; sem seleção de texto nem menu do sistema */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+.celula:disabled {
+  border-style: dashed;
+  opacity: 0.45;
+  cursor: default;
+}
+
+.celula.feito {
+  background: var(--destaque);
+  border-color: var(--destaque);
+  color: var(--sobre-destaque);
+  font-weight: 600;
+}
+
+.celula.minimo {
+  background: var(--destaque-leve);
+  border-color: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+  font-weight: 600;
+}
+
+.celula.dispensado {
+  border-style: dashed;
+  color: var(--suave);
+}
+
+.dica {
+  margin-top: 16px;
+  color: var(--suave);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* Folha: painel que sobe do rodapé */
+.fundo-folha {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.4);
+}
+
+.folha {
+  width: 100%;
+  max-width: 640px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  background: var(--cartao);
+}
+
+.folha header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.folha header h2 {
+  font-size: 1.1rem;
+}
+
+.folha header p {
+  margin: 2px 0 0;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+
+.folha header button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--linha);
+}
+
+.folha form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.folha label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+
+.folha input {
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 1.1rem;
+}
+
+.folha .ajuda {
+  margin: 0;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+
+.folha .erro {
+  margin: 0;
+}
+
+.folha .acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.folha .acoes button {
+  padding: 10px 16px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: transparent;
+}
+
+.folha .acoes button.principal {
+  border-color: var(--destaque);
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  font-weight: 600;
+}
+
+/* Formulários em cartão e em folha */
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  background: var(--cartao);
+}
+
+.cartao form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cartao label,
+.folha label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+
+.cartao input,
+.cartao select,
+.cartao textarea,
+.folha select,
+.folha textarea {
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+.cartao .acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cartao .acoes button {
+  padding: 10px 16px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: transparent;
+}
+
+.cartao .acoes button.principal {
+  border-color: var(--destaque);
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  font-weight: 600;
+}
+
+.cartao .acoes button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cartao .erro,
+.cartao .ajuda {
+  margin: 0;
+}
+
+.ajuda,
+.detalhe {
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+/* Sessão de foco */
+.foco section {
+  margin-top: 24px;
+}
+
+.foco section > h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--suave);
+  margin: 0 0 6px 2px;
+}
+
+.andamento {
+  text-align: center;
+}
+
+.andamento form {
+  text-align: left;
+}
+
+.andamento p {
+  margin: 0;
+}
+
+.relogio {
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.escopo {
+  font-size: 0.95rem;
+}
+
+.processo {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  background: var(--cartao);
+}
+
+.processo summary {
+  cursor: pointer;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+
+.sessoes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  background: var(--cartao);
+}
+
+.sessoes li {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.sessoes li + li {
+  border-top: 1px solid var(--linha);
+}
+
+.sessoes li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.totais {
+  margin: 8px 2px 0;
+  color: var(--suave);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Textos da Constituição (Markdown) */
+.texto {
+  font-size: 0.95rem;
+}
+
+.texto h3 {
+  margin: 16px 0 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.texto p {
+  margin: 8px 0;
+}
+
+.texto ul,
+.texto ol {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+
+.texto li {
+  margin: 4px 0;
+}
+
+.texto li.recuado {
+  margin-left: 18px;
+}
+
+.texto ul.marcacao {
+  list-style: none;
+  padding-left: 0;
+}
+
+.texto ul.marcacao label {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--texto);
+  font-size: inherit;
+}
+
+.texto ul.marcacao input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: var(--destaque);
+}
+
+.texto .rolagem {
+  overflow-x: auto;
+}
+
+.texto table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.texto th,
+.texto td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--linha);
+  text-align: left;
+  vertical-align: top;
+}
+
+.texto th {
+  color: var(--suave);
+  font-weight: 600;
+}
+
+/* Integração: peças comuns às telas novas */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Oito telas na navegação, todas visíveis: uma linha na tela larga,
+   duas de quatro no celular. Nada fica escondido de lado. */
+.navegacao .segmentos {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.navegacao .segmentos button {
+  min-width: 0;
+  padding: 8px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 560px) {
+  .navegacao .segmentos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .navegacao .segmentos button {
+    padding: 8px 2px;
+    font-size: 0.85rem;
+  }
+}
+
+.segmentos.espacado {
+  margin-top: 12px;
+}
+
+.bloco {
+  margin-top: 20px;
+}
+
+.titulo-bloco {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--suave);
+  margin: 16px 0 6px 2px;
+}
+
+.bloco > .titulo-bloco:first-child {
+  margin-top: 0;
+}
+
+.titulo-texto {
+  font-size: 1.15rem;
+  margin: 4px 0 0;
+}
+
+.vazio.pequeno {
+  margin: 0;
+  padding: 10px 2px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.voltar {
+  display: inline-block;
+  margin-bottom: 2px;
+  text-decoration: none;
+}
+
+.captura {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.captura input,
+.campo {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--cartao);
+  color: var(--texto);
+  font-size: 1rem;
+}
+
+select.campo {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.campo.curto {
+  flex: none;
+  width: 84px;
+  padding: 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.campo.invalido {
+  border-color: var(--alerta);
+}
+
+.captura button,
+.botao {
+  padding: 10px 14px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--cartao);
+  color: var(--texto);
+  font-size: 0.95rem;
+}
+
+.botao.principal {
+  border-color: var(--destaque);
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  font-weight: 600;
+}
+
+.botao.perigo {
+  border-color: var(--alerta);
+  color: var(--alerta);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  background: var(--cartao);
+}
+
+.lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 12px;
+}
+
+.lista li + li {
+  border-top: 1px solid var(--linha);
+}
+
+.lista input[type='checkbox'],
+.marcavel input[type='checkbox'] {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--destaque);
+}
+
+.lista .item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  color: var(--texto);
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.lista .item small {
+  color: var(--suave);
+  font-size: 0.8rem;
+}
+
+.lista .item small.chip {
+  color: var(--texto-destaque-leve);
+}
+
+.chip {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chip.neutro,
+.lista .item small.chip.neutro {
+  background: var(--linha);
+  color: var(--suave);
+}
+
+.riscado {
+  text-decoration: line-through;
+  color: var(--suave);
+}
+
+label.marcavel,
+.cartao label.marcavel {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  color: var(--texto);
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.lado-a-lado {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.lado-a-lado > label:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.lado-a-lado > label.marcavel {
+  padding-bottom: 12px;
+}
+
+.resumo-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  background: var(--cartao);
+  font-size: 0.95rem;
+}
+
+.destaque-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.destaque-linha small {
+  color: var(--suave);
+  font-weight: 400;
+}
+
+.cartao p {
+  margin: 0;
+}
+
+.cartao input,
+.cartao select,
+.cartao textarea,
+.folha input,
+.folha select,
+.folha textarea {
+  font-size: 1rem;
+  min-width: 0;
+}
+
+.cartao textarea,
+.folha textarea {
+  resize: vertical;
+}
+
+.hoje .foco {
+  margin-top: 20px;
+}
+
+.habitos.embutido .dias.cabecalho {
+  position: static;
+  padding-top: 0;
+}
+
+.habitos.embutido .semana {
+  margin-bottom: 4px;
+}
+
+.habitos.embutido section {
+  margin-top: 6px;
+}
+
+/* Hoje: rituais e hábitos do dia */
+.rituais {
+  margin-top: 8px;
+}
+
+.rituais > .botao {
+  flex: 1;
+}
+
+.botao.concluido {
+  border-color: var(--destaque-leve);
+  background: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+}
+
+.habitos.so-hoje .semana,
+.habitos.so-hoje .dias.cabecalho,
+.habitos.so-hoje .dica {
+  display: none;
+}
+
+.habitos.so-hoje section:first-of-type {
+  margin-top: 0;
+}
+
+/* A folha rola quando o conteúdo é mais alto que a tela */
+.folha {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.folha label.marcavel {
+  flex-direction: row;
+  align-items: center;
+}
+
+.lado-a-lado > label {
+  flex: 1;
+  min-width: 0;
+}
+
+.lado-a-lado > label.marcavel {
+  flex: none;
+}
+
+/* Grupo recolhido de hábitos (registro livre, em Hoje) */
+.habitos details.grupo {
+  margin-top: 14px;
+}
+
+.habitos details.grupo > summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--suave);
+  margin: 0 0 6px 2px;
+}
+
+.linha .nome small.chip {
+  margin-left: 8px;
+  color: var(--texto-destaque-leve);
+  font-size: 0.7rem;
+}
+
+.linha .nome small.chip.neutro {
+  color: var(--suave);
+}
+
+/* Revisão do assistente */
+.revisao {
+  margin-top: 12px;
+}
+
+.observacoes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.observacoes li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.observacoes .chip {
+  margin-left: 0;
+}
+
+.lista li.proposta .botoes {
+  margin-top: 6px;
+}
+
+.lista li.proposta .captura {
+  margin-top: 6px;
+  width: 100%;
+}
+
+.processo .bloco {
+  margin-top: 10px;
+}
+
+/* Conversa com o assistente */
+.pergunta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pergunta textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  background: var(--cartao);
+  color: var(--texto);
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.pergunta button {
+  align-self: flex-end;
+}
+
+.sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.chip-botao {
+  padding: 6px 12px;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--cartao);
+  color: var(--texto);
+  font-size: 0.85rem;
+}
+
+.conversa {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.fala {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  max-width: 92%;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.fala.usuario {
+  align-self: flex-end;
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  white-space: pre-wrap;
+}
+
+.fala.assistente {
+  align-self: flex-start;
+  border: 1px solid var(--linha);
+  background: var(--cartao);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fala.assistente .texto p:first-child,
+.fala.assistente .texto ul:first-child {
+  margin-top: 0;
+}
+
+.fala.assistente .texto p:last-child {
+  margin-bottom: 0;
+}
+
+/* Hábitos: ✓ e ✕ no sim ou não, campo de número na quantidade */
+.botoes-habito {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+
+.celula.pequena {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+  color: var(--suave);
+}
+
+.celula.pequena.feito,
+.celula.pequena.minimo {
+  color: inherit;
+}
+
+.celula.pequena.minimo {
+  font-size: 0.8rem;
+}
+
+.celula.nao {
+  background: var(--suave);
+  border-color: var(--suave);
+  color: var(--cartao);
+  font-weight: 600;
+}
+
+.celula.campo-numero {
+  width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.1;
+  border-style: solid;
+  border-bottom-width: 2px;
+}
+
+.celula.campo-numero strong {
+  font-size: 0.95rem;
+}
+
+.celula.campo-numero small {
+  font-size: 0.7rem;
+  color: var(--suave);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.celula.campo-numero:not(.feito):not(.minimo) strong {
+  color: var(--suave);
+  font-weight: 500;
+}
+
+.celula.campo-numero.feito small,
+.celula.campo-numero.minimo small {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.marcas i.nao {
+  background: var(--suave);
+  opacity: 0.55;
+}
+
+/* Constituição e estratégias como um documento só, com tópicos que abrem e fecham */
+.acoes-do-documento {
+  margin: 4px 2px 8px;
+  text-align: right;
+}
+
+.documento {
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  background: var(--cartao);
+  margin-bottom: 12px;
+}
+
+.topico + .topico {
+  border-top: 1px solid var(--linha);
+}
+
+.topico h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.topico h3 button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  color: var(--texto);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+}
+
+.topico .seta {
+  display: inline-block;
+  width: 1em;
+  color: var(--suave);
+  transition: transform 0.15s;
+}
+
+.topico.aberto .seta {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topico .seta {
+    transition: none;
+  }
+}
+
+.corpo-do-topico {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 14px 14px 38px;
+}
+
+.corpo-do-topico .texto {
+  font-size: 0.95rem;
+}
+
+.rodape-do-topico {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.corpo-do-topico .edicao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.corpo-do-topico .edicao label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+
+.corpo-do-topico .edicao textarea,
+.corpo-do-topico .edicao input {
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.corpo-do-topico .edicao .acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.corpo-do-topico .edicao .acoes button {
+  padding: 10px 16px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--texto);
+}
+
+.corpo-do-topico .edicao .acoes button.principal {
+  border-color: var(--destaque);
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .corpo-do-topico {
+    padding-left: 14px;
+  }
+}
+
+/* ── Celular, tablet e computador ──────────────────────────────────────
+   Celular: uma coluna, abas no alto (o que vem antes deste trecho).
+   Tablet (768 px ou mais): a mesma coluna, um pouco mais larga.
+   Computador (1024 px ou mais): menu lateral fixo e telas em colunas.  */
+
+.marca,
+.conta,
+.so-computador {
+  display: none;
+}
+
+/* Por padrão (celular e tablet), as colunas empilham. */
+.colunas,
+.coluna,
+.grupos,
+.quadro {
+  min-width: 0;
+}
+
+/* Tarefas no celular: só a aba escolhida. */
+@media (max-width: 1023px) {
+  .coluna-do-quadro:not(.ativa) {
+    display: none;
+  }
+
+  /* Notas no celular: a lista ou a nota aberta. */
+  .lista-detalhe.com-nota .lado-lista,
+  .lista-detalhe:not(.com-nota) .lado-detalhe {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  main,
+  .navegacao,
+  .rodape {
+    max-width: 760px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  /* Menu lateral */
+  .navegacao {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    max-width: none;
+    margin: 0;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-right: 1px solid var(--linha);
+    background: var(--cartao);
+  }
+
+  .marca {
+    display: block;
+    margin: 0 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--destaque);
+  }
+
+  .navegacao .segmentos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0;
+    background: none;
+  }
+
+  .navegacao .segmentos button {
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    text-align: left;
+  }
+
+  .navegacao .segmentos button:hover:not(.ativo) {
+    background: var(--fundo);
+    color: var(--texto);
+  }
+
+  .navegacao .segmentos button.ativo {
+    background: var(--destaque-leve);
+    color: var(--texto-destaque-leve);
+  }
+
+  .conta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: auto 8px 0;
+    color: var(--suave);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+
+  .conta button {
+    align-self: flex-start;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: var(--destaque);
+    text-decoration: underline;
+    font-size: 0.85rem;
+  }
+
+  .conteudo .rodape {
+    display: none;
+  }
+
+  /* Área de conteúdo: largura de painel */
+  main {
+    max-width: 1200px;
+    padding: 32px 40px 48px;
+  }
+
+  main.estreito {
+    max-width: 820px;
+  }
+
+  .titulo-tela {
+    font-size: 1.6rem;
+  }
+
+  .so-computador {
+    display: block;
+  }
+
+  .so-celular {
+    display: none;
+  }
+
+  /* Duas colunas */
+  .colunas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  .colunas.larga-estreita {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+
+  .titulo-tela + .colunas,
+  .titulo-tela + .ajuda + .colunas {
+    margin-top: 16px;
+  }
+
+  /* O primeiro bloco de cada coluna começa no alto, alinhado com o vizinho. */
+  .coluna > .bloco:first-child,
+  .coluna > .cartao:first-child,
+  .coluna > .botoes:first-child,
+  .coluna.bloco,
+  .bloco.primeiro {
+    margin-top: 0;
+  }
+
+  .coluna > .botoes.rituais:first-child + .cartao {
+    margin-top: 12px;
+  }
+
+  .coluna.fixa {
+    position: sticky;
+    top: 24px;
+  }
+
+  .hoje .coluna > .foco:last-child {
+    margin-top: 20px;
+  }
+
+  /* Hábitos: as áreas lado a lado */
+  .habitos:not(.embutido) .semana,
+  .habitos:not(.embutido) > .dias.cabecalho,
+  .habitos:not(.embutido) > .dica {
+    max-width: 640px;
+  }
+
+  .habitos:not(.embutido) > .dica {
+    text-align: left;
+  }
+
+  .habitos:not(.embutido) .grupos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 0 24px;
+    align-items: start;
+  }
+
+  /* Áreas: o painel em cartões */
+  .lista.painel-areas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    border: 0;
+    background: none;
+  }
+
+  .lista.painel-areas li {
+    padding: 6px 16px;
+    border: 1px solid var(--linha);
+    border-radius: 14px;
+    background: var(--cartao);
+  }
+
+  .lista.painel-areas li + li {
+    border-top: 1px solid var(--linha);
+  }
+
+  /* Tarefas: entrada, abertas, projetos e feitas lado a lado */
+  .quadro {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    align-items: start;
+    margin-top: 20px;
+  }
+
+  .quadro > .bloco {
+    margin-top: 0;
+  }
+
+  .grupo-de-tarefas + .grupo-de-tarefas {
+    margin-top: 12px;
+  }
+
+  /* Notas: a lista à esquerda, a nota aberta à direita */
+  .lista-detalhe {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  .lado-detalhe {
+    min-width: 0;
+  }
+
+  .lado-detalhe > .vazio {
+    margin-top: 72px;
+  }
+
+  .lista .item.selecionado span {
+    color: var(--destaque);
+    font-weight: 600;
+  }
+
+  /* Painéis (folhas) viram uma janela no centro da tela */
+  .fundo-folha {
+    align-items: center;
+  }
+
+  .folha {
+    max-width: 560px;
+    padding: 20px;
+    border-radius: 16px;
+  }
+}
+
+/* Telas muito largas: o menu um pouco mais largo e mais respiro. */
+@media (min-width: 1440px) {
+  .app {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  main {
+    padding-left: 56px;
+    padding-right: 56px;
+  }
+}
+
+/* Histórico de foco e estudo */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.filtros .segmentos {
+  flex: 1 1 auto;
+}
+
+.filtros .segmentos button {
+  white-space: nowrap;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.filtros select.campo {
+  flex: 1 1 160px;
+  width: auto;
+  margin-top: 0;
+}
+
+.numeros-foco {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.numero-foco {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  background: var(--cartao);
+}
+
+.numero-foco span {
+  color: var(--suave);
+  font-size: 0.8rem;
+}
+
+.numero-foco strong {
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.numero-foco small {
+  color: var(--suave);
+  font-size: 0.75rem;
+}
+
+.grafico-foco {
+  padding: 12px 14px;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  background: var(--cartao);
+}
+
+.legenda {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 6px;
+  color: var(--suave);
+  font-size: 0.8rem;
+}
+
+.legenda span,
+.dica-do-grafico span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legenda i,
+.dica-do-grafico i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.area-do-grafico {
+  position: relative;
+}
+
+.area-do-grafico svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.area-do-grafico .grade {
+  stroke: var(--linha);
+  stroke-width: 1;
+}
+
+.area-do-grafico .base {
+  stroke: var(--suave);
+  stroke-width: 1;
+}
+
+.area-do-grafico .eixo {
+  fill: var(--suave);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.area-do-grafico .semana.marcada path {
+  filter: brightness(1.08);
+}
+
+.area-do-grafico .semana rect {
+  cursor: pointer;
+}
+
+.area-do-grafico .referencia line {
+  stroke: var(--texto);
+  stroke-width: 1.5;
+}
+
+.area-do-grafico .referencia text {
+  fill: var(--texto);
+  font-size: 11px;
+}
+
+.dica-do-grafico {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--linha);
+  border-radius: 8px;
+  background: var(--cartao);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.dia-de-sessoes + .dia-de-sessoes {
+  margin-top: 12px;
+}
+
+.revisao-da-sessao {
+  font-style: italic;
+}
+
+.folha .acoes button.perigo {
+  border-color: var(--alerta);
+  color: var(--alerta);
+}
+
+@media (min-width: 1024px) {
+  .lista-de-sessoes {
+    max-width: 820px;
+  }
+
+  .filtros .segmentos,
+  .filtros select.campo {
+    flex: 0 1 auto;
+  }
+}
+
+/* ══ Gelo e petróleo: camada visual (17/11/2026) ═══════════════════════
+   Menos caixas, hierarquia pela letra, cor por grupo de telas.
+   Fica no fim do arquivo de propósito: ajusta o que vem antes.        */
+
+/* ── Navegação ─────────────────────────────────────────────────────── */
+.abas {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--cartao) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-top: 1px solid var(--linha);
+}
+
+.abas button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 4px 0 0;
+  border: 0;
+  background: none;
+  color: var(--suave);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.abas button.ativo {
+  color: var(--grupo-dia);
+}
+
+.lista-mais {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--fundo);
+}
+
+.lista-mais button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: var(--texto);
+  font-size: 1rem;
+  text-align: left;
+}
+
+.lista-mais button + button {
+  border-top: 1px solid var(--linha);
+}
+
+.lista-mais button svg {
+  color: var(--destaque);
+}
+
+.lista-mais button span:first-of-type {
+  flex: 1;
+}
+
+.lista-mais button span:last-of-type {
+  color: var(--suave);
+}
+
+.lista-mais button.ativo span:first-of-type {
+  font-weight: 600;
+}
+
+@media (max-width: 1023px) {
+  .navegacao {
+    display: none;
+  }
+
+  /* Espaço para a barra de baixo não cobrir o fim da página. */
+  .conteudo {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  main {
+    padding-top: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .abas {
+    display: none;
+  }
+
+  .navegacao {
+    gap: 18px;
+  }
+
+  .menu-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .menu-grupo > p {
+    margin: 0;
+    padding: 0 12px 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--suave);
+  }
+
+  .menu-grupo button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    color: var(--texto);
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .menu-grupo button:hover:not(.ativo) {
+    background: var(--fundo);
+  }
+
+  .menu-grupo button.ativo {
+    background: var(--destaque);
+    color: var(--sobre-destaque);
+    font-weight: 600;
+  }
+
+  .ponto-do-menu {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--destaque);
+    flex: none;
+  }
+
+  .menu-grupo button.ativo .ponto-do-menu {
+    background: var(--sobre-destaque);
+  }
+
+  .marca {
+    color: var(--texto);
+    padding: 0 12px;
+  }
+}
+
+/* ── Títulos ───────────────────────────────────────────────────────── */
+.titulo-tela {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Cabeçalho de grupo, como no financeiro: curto, em caixa alta, acima da lista. */
+.titulo-bloco,
+.habitos section > h2,
+.habitos details.grupo > summary,
+.foco section > h2 {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+
+/* ── Superfícies: cartões brancos sobre o gelo, sem bordas ─────────── */
+.cartao,
+.lista,
+.sessoes,
+.resumo-linha,
+.numero-foco,
+.grafico-foco,
+.documento,
+.processo,
+.fala.assistente,
+.captura input,
+.campo,
+.botao,
+.captura button,
+.chip-botao {
+  border-color: transparent;
+}
+
+.cartao,
+.lista,
+.sessoes,
+.documento,
+.grafico-foco {
+  border-radius: 14px;
+}
+
+/* Campos de texto: um traço fino para se distinguirem do cartão. */
+.captura input,
+.campo,
+.pergunta textarea {
+  border-color: var(--linha);
+}
+
+/* ── Hábitos: as linhas de um grupo formam uma superfície só ───────── */
+.habitos section > .linha {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.habitos section > .linha + .linha {
+  border-top: 1px solid var(--linha);
+}
+
+.habitos section > .linha:first-of-type {
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+.habitos section > .linha:last-of-type {
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+.habitos section > h2 {
+  margin-bottom: 8px;
+}
+
+/* ✓ redondo, ✕ discreto */
+.celula.pequena {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--anel);
+  font-size: 0.95rem;
+  color: var(--mudo);
+}
+
+.botoes-habito {
+  align-items: center;
+  gap: 4px;
+}
+
+.botoes-habito .celula.pequena + .celula.pequena {
+  border-color: transparent;
+  width: 30px;
+  height: 30px;
+}
+
+.celula.pequena.feito {
+  background: var(--destaque);
+  border-color: var(--destaque);
+  color: var(--sobre-destaque);
+}
+
+.celula.pequena.minimo {
+  background: var(--destaque-leve);
+  border-color: var(--destaque);
+  color: var(--texto-destaque-leve);
+}
+
+.celula.pequena.nao,
+.botoes-habito .celula.pequena + .celula.pequena.nao {
+  background: var(--mudo);
+  border-color: var(--mudo);
+  color: var(--cartao);
+}
+
+/* Número em pílula */
+.celula.campo-numero {
+  width: auto;
+  min-width: 68px;
+  height: 34px;
+  padding: 0 12px;
+  flex-direction: row;
+  gap: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--controle);
+}
+
+.celula.campo-numero.feito {
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+}
+
+.celula.campo-numero.minimo {
+  background: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+}
+
+.celula.campo-numero.dispensado {
+  border: 1.5px dashed var(--anel);
+  background: transparent;
+}
+
+/* Barra fina da meta da semana, como no orçamento do financeiro */
+.meta-da-semana {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--linha);
+  overflow: hidden;
+}
+
+.meta-da-semana i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--destaque);
+}
+
+/* ── Seletores: o ativo fica preenchido na cor do grupo ────────────── */
+.segmentos {
+  background: var(--cartao);
+  box-shadow: inset 0 0 0 1px var(--linha);
+}
+
+.segmentos button.ativo {
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+}
+
+.dias.cabecalho .selecionado {
+  border-radius: 999px;
+}
+
+/* ── Ações: um botão cheio por tela; o resto é texto, sem sublinhado ── */
+button.link,
+.rodape button {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+button.link:hover {
+  text-decoration: underline;
+}
+
+.botao,
+.captura button {
+  background: var(--controle);
+  color: var(--texto);
+  font-weight: 500;
+}
+
+.botao.principal {
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+}
+
+.chip {
+  background: var(--controle);
+  color: var(--texto);
+}
+
+.lista .item small.chip,
+.chip {
+  color: var(--suave);
+}
+
+.ponto-da-area {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: 0.05em;
+  flex: none;
+}
+
+/* ── Hoje ──────────────────────────────────────────────────────────── */
+.cabecalho-do-dia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cabecalho-do-dia .data {
+  margin: 0 0 2px;
+  color: var(--suave);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.unica-coisa {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--ambar-leve);
+}
+
+.unica-coisa .rotulo-ambar {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ambar-tinta);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.unica-coisa .rotulo-ambar i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ambar);
+}
+
+.unica-coisa .linha-do-destaque {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unica-coisa .destaque {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--ambar-tinta) 35%, transparent);
+  background: transparent;
+  color: var(--texto);
+  font: 700 1.2rem/1.3 inherit;
+  font-family: inherit;
+}
+
+.unica-coisa .destaque::placeholder {
+  color: color-mix(in srgb, var(--ambar-tinta) 70%, transparent);
+  font-weight: 600;
+}
+
+.unica-coisa .destaque:focus {
+  outline: none;
+  border-bottom-style: solid;
+}
+
+.marcar-destaque {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--ambar);
+  background: transparent;
+  color: var(--cartao);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marcar-destaque.feito {
+  background: var(--ambar);
+  color: #1a1d21;
+}
+
+.marcar-destaque:disabled {
+  opacity: 0.4;
+}
+
+.unica-coisa select {
+  align-self: flex-start;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ambar) 18%, transparent);
+  color: var(--ambar-tinta);
+  font: 500 0.85rem inherit;
+  font-family: inherit;
+}
+
+.rituais-do-dia {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pilula-ritual {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--cartao);
+  color: var(--texto);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.pilula-ritual.concluido {
+  background: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+  font-weight: 600;
+}
+
+.tamanho-do-dia {
+  margin-top: 14px;
+}
+
+.vaga {
+  margin-top: 8px;
+  padding: 13px 14px;
+  border: 1.5px dashed var(--anel);
+  border-radius: 12px;
+  color: var(--mudo);
+  font-size: 0.9rem;
+}
+
+.lista .marcar-tarefa {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--anel);
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sobre-destaque);
+}
+
+.lista .marcar-tarefa.feita {
+  background: var(--destaque);
+  border-color: var(--destaque);
+}
+
+/* Foco: o número grande, como o patrimônio no financeiro */
+.relogio {
+  font-size: 3.2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--destaque);
+}
+
+/* Como funciona: a ajuda fica recolhida */
+.como-funciona {
+  margin-top: 16px;
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+.como-funciona summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--destaque);
+}
+
+.como-funciona p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+/* Folha no tema novo */
+.folha {
+  border: 0;
+}
+
+/* Em Hoje, a lista de hábitos fica mais leve: a barra da meta no lugar dos quadradinhos. */
+.habitos.so-hoje .marcas {
+  display: none;
+}
+
+.habitos.so-hoje .dica {
+  display: none;
+}
+
+.linha .rotulo .meta-da-semana {
+  margin-top: 2px;
+}
+
+button.vaga {
+  display: block;
+  width: 100%;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+}
+
+.unica-coisa .riscado {
+  text-decoration: line-through;
+  color: var(--suave);
+}
+
+.unica-coisa .erro {
+  margin: 0;
+}
+
+.hoje .lista li {
+  padding: 4px 12px;
+}
+
+.hoje .lista .item small {
+  display: flex;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .hoje .colunas {
+    margin-top: 8px;
+  }
+}
+
+/* Área em foco: o selo ganha a cor do grupo; manutenção e pausa ficam neutros. */
+.lista .item small.chip:not(.neutro),
+.chip:not(.neutro) {
+  background: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+}
+
+.lista .item small {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.unica-coisa .destaque {
+  resize: none;
+  overflow: hidden;
+}
+
+/* Título de seção em tinta e peso; o cabeçalho de grupo (dentro da seção) fica em caixa alta. */
+.titulo-bloco {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--texto);
+  margin-bottom: 8px;
+}
+
+.titulo-bloco.so-computador,
+h3.titulo-bloco,
+.grupo-de-tarefas > .titulo-bloco,
+.dia-de-sessoes > .titulo-bloco {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+
+/* ══ Plano do ciclo guiado ══════════════════════════════════════════════ */
+.passos {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.passos button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 2px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--suave);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.passos .numero-do-passo {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--controle);
+  color: var(--suave);
+  font-weight: 600;
+}
+
+.passos button.feito .numero-do-passo {
+  background: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+}
+
+.passos button.ativo {
+  color: var(--texto);
+  font-weight: 600;
+}
+
+.passos button.ativo .numero-do-passo {
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+}
+
+.passos .nome-do-passo {
+  text-align: center;
+  line-height: 1.2;
+}
+
+@media (max-width: 560px) {
+  .passos .nome-do-passo {
+    display: none;
+  }
+  .passos button.ativo .nome-do-passo {
+    display: block;
+  }
+}
+
+.passo h3,
+.objetivos-da-area h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.lista-de-cartoes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nome-da-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.visao-ao-lado {
+  margin: 0 0 12px;
+  padding-left: 12px;
+  border-left: 2px solid var(--linha);
+  border-radius: 0;
+  white-space: pre-line;
+}
+
+.lista.visoes .item small {
+  white-space: pre-line;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.cartao.objetivo {
+  margin-bottom: 12px;
+}
+
+.cabecalho-do-objetivo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.titulo-do-objetivo {
+  margin: 0;
+  font-weight: 600;
+}
+
+.fases {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+  margin: 12px 0;
+  font-size: 0.875rem;
+}
+
+.fases dt {
+  color: var(--suave);
+}
+
+.fases dd {
+  margin: 0;
+}
+
+.quebra {
+  white-space: pre-line;
+}
+
+@media (max-width: 560px) {
+  .fases {
+    grid-template-columns: 1fr;
+  }
+  .fases dd {
+    margin-bottom: 6px;
+  }
+}
+
+.ajuda.aviso {
+  color: var(--alerta);
+}
+
+.cartao form.linha-de-captura,
+.linha-de-captura {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.linha-de-captura .botao {
+  flex: none;
+  width: auto;
+}
+
+.linha-de-captura input {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-do-objetivo fieldset {
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+
+.form-do-objetivo legend {
+  margin-bottom: 6px;
+  color: var(--destaque);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.conferencia {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.conferencia li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.conferencia .marca {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.conferencia .ok .marca {
+  background: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+}
+
+.conferencia .fora .marca {
+  background: var(--ambar-leve);
+  color: var(--ambar-tinta);
+}
+
+.conferencia .regra {
+  display: flex;
+  flex-direction: column;
+}
+
+.conferencia .regra small {
+  color: var(--suave);
+}
+
+.navegacao-dos-passos {
+  align-items: center;
+}
+
+.texto-da-unica-coisa,
+.unica-coisa-do-ciclo {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.unica-coisa-do-ciclo {
+  color: var(--ambar-tinta);
+  font-size: 0.875rem;
+}
+
+.unica-coisa textarea.destaque {
+  width: 100%;
+  resize: vertical;
+}
+
+/* ══ Sistema: o mapa do hub ════════════════════════════════════════════ */
+.mapa-do-hub {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 8px auto 0;
+  font-family: inherit;
+}
+
+.mapa-do-hub .moldura rect {
+  fill: none;
+  stroke: var(--anel);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+
+.mapa-do-hub .moldura text {
+  fill: var(--suave);
+  font-size: 12px;
+}
+
+.mapa-do-hub .moldura {
+  cursor: pointer;
+}
+
+.mapa-do-hub .moldura.selecionada rect {
+  stroke: var(--grupo-sistema);
+  stroke-width: 1.5;
+}
+
+.mapa-do-hub .moldura.selecionada text {
+  fill: var(--texto);
+  font-weight: 600;
+}
+
+.mapa-do-hub .elo {
+  cursor: pointer;
+}
+
+.mapa-do-hub .elo rect {
+  fill: var(--cartao);
+  stroke: var(--linha);
+  stroke-width: 1;
+}
+
+.mapa-do-hub .elo text {
+  fill: var(--texto);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mapa-do-hub .elo.grupo-areas rect {
+  stroke: #9b8fd6;
+}
+
+.mapa-do-hub .elo.grupo-escalas rect {
+  stroke: #7fb3bd;
+}
+
+.mapa-do-hub .elo.ligado rect {
+  fill: var(--destaque-leve);
+}
+
+.mapa-do-hub .elo.ligado text {
+  fill: var(--texto-destaque-leve);
+}
+
+.mapa-do-hub .elo.selecionado rect {
+  fill: var(--destaque);
+  stroke: var(--destaque);
+}
+
+.mapa-do-hub .elo.selecionado text {
+  fill: var(--sobre-destaque);
+}
+
+.mapa-do-hub .elo:focus-visible rect,
+.mapa-do-hub .moldura:focus-visible rect {
+  stroke: var(--texto);
+  stroke-width: 2;
+}
+
+.mapa-do-hub :focus {
+  outline: none;
+}
+
+.mapa-do-hub .seta {
+  fill: none;
+  stroke: var(--anel);
+  stroke-width: 1.2;
+}
+
+.mapa-do-hub .seta.sobe {
+  stroke-dasharray: 4 3;
+}
+
+.mapa-do-hub .seta.acesa {
+  stroke: var(--destaque);
+  stroke-width: 1.6;
+}
+
+.legenda-do-mapa {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin: 10px 0 0;
+  color: var(--suave);
+  font-size: 0.8125rem;
+}
+
+.legenda-do-mapa span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legenda-do-mapa .traco {
+  width: 22px;
+  border-top: 1.5px solid var(--suave);
+}
+
+.legenda-do-mapa .traco.tracejado {
+  border-top-style: dashed;
+}
+
+.explicacao-do-elo h3 {
+  margin: 16px 0 6px;
+  color: var(--suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.explicacao-do-elo .cartao > p:first-child {
+  margin-top: 0;
+}
+
+.explicacao-do-elo .bases {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.explicacao-do-elo .bases li + li {
+  margin-top: 4px;
+}
+
+.explicacao-do-elo .ligacoes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.explicacao-do-elo .ligacoes li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.explicacao-do-elo .ligacoes .chip-botao {
+  flex: none;
+  min-width: 88px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--controle);
+  color: var(--texto);
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.textos-do-elo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+/* ══ Plano: a visão no alto, a semana base e as ações do ciclo ══════════ */
+.visao-norte {
+  margin: 8px 0 24px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--cartao);
+}
+
+.visao-norte summary {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.visao-norte summary::-webkit-details-marker {
+  display: none;
+}
+
+.visao-norte summary::before {
+  content: '›';
+  display: inline-block;
+  color: var(--suave);
+  transition: transform 0.15s;
+}
+
+.visao-norte[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.visao-norte summary .titulo-bloco {
+  margin: 0;
+}
+
+.visao-norte summary small {
+  color: var(--suave);
+}
+
+.lista-de-visoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px 24px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.visao-da-area .nome-da-area .link {
+  margin-left: auto;
+  font-weight: 400;
+}
+
+.texto-da-visao {
+  margin: 0;
+  font-size: 0.875rem;
+  white-space: pre-line;
+}
+
+.texto-da-visao.sem-texto,
+.visao-ao-lado.sem-texto {
+  color: var(--mudo);
+  font-style: italic;
+}
+
+.visao-da-area textarea {
+  width: 100%;
+}
+
+.semana-base {
+  margin-top: 12px;
+}
+
+.numeros-da-semana-base {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--cartao);
+}
+
+.numeros-da-semana-base p {
+  margin: 0;
+}
+
+.numeros-da-semana-base small {
+  display: block;
+  color: var(--suave);
+}
+
+.horas-por-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 8px !important;
+  color: var(--suave);
+  font-size: 0.8125rem;
+}
+
+.horas-por-area span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.grade-da-semana {
+  display: grid;
+  gap: 0 4px;
+  padding: 10px 8px 8px 0;
+  border-radius: 14px;
+  background: var(--cartao);
+}
+
+.cabeca-do-dia {
+  padding-bottom: 6px;
+  color: var(--suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.regua {
+  position: relative;
+}
+
+.regua span {
+  position: absolute;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--mudo);
+  font-size: 0.6875rem;
+}
+
+.regua span:first-child {
+  transform: none;
+}
+
+.coluna-do-dia {
+  position: relative;
+  border-radius: 6px;
+  background: var(--fundo);
+  cursor: copy;
+}
+
+.linha-da-hora {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 1px solid var(--linha);
+}
+
+.bloco-da-semana {
+  position: absolute;
+  right: 2px;
+  left: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: hidden;
+  padding: 2px 5px;
+  border: 0;
+  border-left: 3px solid var(--anel);
+  border-radius: 0 5px 5px 0;
+  background: var(--controle);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bloco-da-semana .titulo-do-bloco {
+  overflow: hidden;
+  max-width: 100%;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bloco-da-semana small {
+  color: var(--suave);
+}
+
+.bloco-da-semana.para-o-ciclo {
+  border-left-color: var(--ambar);
+  background: var(--ambar-leve);
+  color: var(--ambar-tinta);
+}
+
+.bloco-da-semana.para-o-ciclo small {
+  color: var(--ambar-tinta);
+}
+
+@media (min-width: 768px) {
+  .bloco-da-semana {
+    font-size: 0.75rem;
+  }
+}
+
+.dias-do-bloco {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+}
+
+.dias-do-bloco legend {
+  margin-bottom: 6px;
+  color: var(--suave);
+  font-size: 0.875rem;
+}
+
+.dias-do-bloco .segmentos button {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.acoes-do-ciclo {
+  margin-top: 8px;
+}
+
+.links-do-ciclo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+}
+
+.link.perigo {
+  color: var(--alerta);
+}
+
+.cartao.confirmacao p {
+  margin-top: 0;
+}
+
+.grupo-do-cadastro + .grupo-do-cadastro {
+  margin-top: 16px;
+}
+
+.rotulo-do-grupo {
+  margin: 0 0 6px;
+  color: var(--suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cadastro-de-habitos .lista li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cadastro-de-habitos .lista li .item {
+  flex: 1;
+  min-width: 0;
+}
+
+.plano-guiado .lista-de-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  align-items: start;
+}
+
+/* ══ Plano: abas de escala e quadro da semana ═══════════════════════════ */
+.escalas-do-plano {
+  max-width: 320px;
+  margin: 4px 0 20px;
+}
+
+.navegar-semana {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.navegar-semana .titulo-bloco {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+
+.navegar-semana .titulo-bloco small {
+  color: var(--suave);
+  font-weight: 400;
+}
+
+.navegar-semana .botao {
+  min-width: 36px;
+  padding: 4px 10px;
+}
+
+.objetivos-lembrados .unica-coisa {
+  margin: 12px 0 4px;
+}
+
+.intencao-da-semana {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px 16px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 1024px) {
+  .intencao-da-semana {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.quadro-da-semana {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 1024px) {
+  .quadro-da-semana {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 1023px) {
+  .coluna-da-semana:not(.ativa) {
+    display: none;
+  }
+}
+
+.coluna-da-semana {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--controle);
+  transition: outline-color 0.15s;
+  outline: 2px dashed transparent;
+}
+
+.coluna-da-semana.recebe {
+  outline-color: var(--anel);
+}
+
+.cabeca-da-coluna {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 10px;
+  font-size: 0.875rem;
+}
+
+.cabeca-da-coluna small {
+  color: var(--suave);
+  font-weight: 400;
+}
+
+.cartoes-da-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cartao-da-tarefa {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--cartao);
+  color: var(--texto);
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+}
+
+.cartao-da-tarefa:active {
+  cursor: grabbing;
+}
+
+.cartao-da-tarefa .titulo-da-tarefa {
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.cartao-da-tarefa small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--suave);
+  font-size: 0.75rem;
+}
+
+.cartao-da-tarefa.feita .titulo-da-tarefa {
+  color: var(--suave);
+  text-decoration: line-through;
+}
+
+.nova-na-coluna {
+  margin-top: 8px;
+}
+
+.nova-na-coluna input {
+  width: 100%;
+  border: 1px dashed var(--anel);
+  background: transparent;
+}
+
+.intencao-da-semana {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--cartao);
+}
+
+.intencao-da-semana label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.intencao-da-semana textarea {
+  width: 100%;
+}

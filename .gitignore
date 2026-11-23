@@ -1,0 +1,20 @@
+# Dados pessoais: hábitos, textos da Constituição, dumps do banco. Nunca versionar.
+dados/*
+!dados/.gitkeep
+*.csv
+*.dump
+*.sql.gz
+
+# Segredos
+.env
+.env.*
+!.env.example
+
+# Sistema e ferramentas
+.DS_Store
+node_modules/
+.venv/
+__pycache__/
+.claude/settings.local.json
+supabase/.temp/
+supabase/.branches/

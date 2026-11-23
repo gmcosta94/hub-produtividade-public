@@ -1,0 +1,11 @@
+// Publicação no Cloudflare (Workers com arquivos estáticos).
+// O site é só o conteúdo de dist/; não há código rodando no servidor.
+{
+  "name": "hub-produtividade",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    // App de página única: qualquer endereço devolve o index.html.
+    "not_found_handling": "single-page-application"
+  }
+}
