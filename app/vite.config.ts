@@ -9,8 +9,11 @@ export default defineConfig({
     react(),
     // Torna o site instalável no iPhone (Compartilhar → Adicionar à Tela de Início).
     // O service worker guarda só os arquivos do app; os dados vêm sempre do banco.
+    // A troca de versão é feita pelo app (src/lib/atualizacao.ts), quando nada está
+    // sendo editado: por isso "prompt" e não "autoUpdate", que recarrega na hora.
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Hub de Produtividade',
