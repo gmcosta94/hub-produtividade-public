@@ -44,7 +44,7 @@ export const ELOS: Record<IdDoElo, Elo> = {
     ligacoes: [
       { com: 'areas', como: 'limita quantas áreas ficam em foco' },
       { com: 'ciclo', como: 'confere o plano do ciclo antes de ele começar' },
-      { com: 'habitos', como: 'limita os hábitos essenciais' },
+      { com: 'habitos', como: 'limita os hábitos em construção' },
       { com: 'dia', como: 'define os tamanhos do dia e os espaços de tarefa' },
       { com: 'projetos', como: 'limita os projetos ativos' },
     ],
@@ -167,8 +167,11 @@ export const ELOS: Record<IdDoElo, Elo> = {
     id: 'habitos',
     nome: 'Hábitos',
     titulo: 'Hábitos',
-    faz: 'Cada hábito tem um peso: essencial (não se negocia), base (sustenta o padrão mínimo de uma área) ou livre. A meta é por semana, e "não fiz" não reduz a meta.',
-    bases: ['James Clear: hábitos pequenos, com versão mínima, acompanhados por semana.'],
+    faz: 'Três camadas. Em construção: os poucos hábitos que você está adotando agora. Padrão mínimo: o que segura as áreas fora do foco. Acompanhamento: o que vale registrar quando der, sem pendência nem cobrança. Um hábito em construção que vira rotina passa para acompanhamento e abre a vaga.',
+    bases: [
+      'James Clear: hábitos pequenos, com versão mínima; acompanhar só o que importa, e do jeito mais fácil.',
+      'Gary Keller: um hábito de cada vez, até ele ficar automático.',
+    ],
     ligacoes: [
       { com: 'areas', como: 'sustentam o padrão mínimo' },
       { com: 'dia', como: 'são marcados em Hoje' },
@@ -182,7 +185,7 @@ export const ELOS: Record<IdDoElo, Elo> = {
     id: 'projetos',
     nome: 'Projetos',
     titulo: 'Projetos',
-    faz: 'Um resultado com fim, de uma área. O projeto liga o objetivo do ciclo às tarefas e às notas.',
+    faz: 'Um resultado com fim, de uma área. Os projetos ficam num quadro: Algum dia, Ativos e Concluídos. O limite de ativos vale por frente: os pessoais juntos e cada cliente do trabalho separado. Projeto ativo sem tarefa na semana fica marcado: falta a próxima ação.',
     bases: ['Tiago Forte: o P do PARA; projeto tem fim, área não.'],
     ligacoes: [
       { com: 'ciclo', como: 'serve a um objetivo do ciclo' },
@@ -190,7 +193,7 @@ export const ELOS: Record<IdDoElo, Elo> = {
       { com: 'notas', como: 'reúne as notas do projeto' },
     ],
     voce: 'O que vira projeto e como se sabe que acabou.',
-    parametros: ['projetos_ativos_max'],
+    parametros: ['projetos_ativos_max', 'projetos_por_cliente_max'],
     textos: [],
     tela: 'tarefas',
   },

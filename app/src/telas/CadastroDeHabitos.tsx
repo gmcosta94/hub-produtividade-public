@@ -8,13 +8,21 @@ type Tipo = 'sim_nao' | 'quantidade'
 type Comparacao = 'pelo_menos' | 'no_maximo'
 type Prioridade = 'essencial' | 'base' | 'livre'
 const PESOS: { id: Prioridade; nome: string; ajuda: string }[] = [
-  { id: 'essencial', nome: 'Essencial', ajuda: 'Beira o inegociável neste ciclo. São poucos: o hub limita quantos.' },
+  {
+    id: 'essencial',
+    nome: 'Em construção',
+    ajuda: 'Um hábito que você está adotando agora. São poucos de cada vez: o hub limita quantos.',
+  },
   {
     id: 'base',
     nome: 'Padrão mínimo',
     ajuda: 'Sustenta o padrão mínimo da área, mesmo sem ela estar em foco. Não precisa ser todo dia.',
   },
-  { id: 'livre', nome: 'Livre', ajuda: 'Registro quando eu quiser, sem cobrança.' },
+  {
+    id: 'livre',
+    nome: 'Acompanhamento',
+    ajuda: 'Registro quando der, sem pendência nem cobrança: suplementos, passos, peso.',
+  },
 ]
 type Habito = {
   id: number

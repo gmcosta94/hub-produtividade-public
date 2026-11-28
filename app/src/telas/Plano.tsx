@@ -889,9 +889,10 @@ function PassoHabitos() {
   return (
     <div className="passo">
       <p className="ajuda">
-        Revise os hábitos para este ciclo: os essenciais (até {numero.format(p('habitos_essenciais_max', 3))}) não se
-        negociam, os de padrão mínimo sustentam as áreas fora do foco e os livres não cobram. Toque num hábito para
-        editar ou mudar o peso. "Guardar" tira o hábito de cena sem perder o histórico; ele pode voltar quando quiser.
+        Revise os hábitos para este ciclo: os em construção (até {numero.format(p('habitos_essenciais_max', 3))}) são os
+        que você está adotando agora, os de padrão mínimo sustentam as áreas fora do foco e os de acompanhamento são
+        registrados quando der, sem cobrança. Toque num hábito para editar ou mudar o peso. "Guardar" tira o hábito de
+        cena sem perder o histórico; ele pode voltar quando quiser.
       </p>
       <CadastroDeHabitos sempreAberto aoMudar={() => {}} />
     </div>

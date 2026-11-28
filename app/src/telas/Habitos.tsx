@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { CadastroDeHabitos } from './CadastroDeHabitos'
+import { FolhaDoHistorico, HistoricoDosHabitos } from './HistoricoDosHabitos'
+import { corDaArea } from '../lib/areas'
 import { Folha } from '../componentes/Folha'
 import { lerNumero, numero } from '../lib/formato'
 import {
@@ -16,17 +18,40 @@ import {
 } from '../lib/datas'
 
 type Estado = 'feito' | 'minimo' | 'nao' | 'dispensado'
-// O peso do hábito no ciclo: essencial beira o inegociável, base sustenta o
-// padrão mínimo de uma área, livre é registrado quando a pessoa quiser.
+// As três camadas (o peso do hábito no banco): essencial = em construção, o
+// hábito que se está adotando agora; base = padrão mínimo de uma área;
+// livre = acompanhamento, registrado quando der, sem cobrança.
 type Prioridade = 'essencial' | 'base' | 'livre'
 const PESOS: Prioridade[] = ['essencial', 'base', 'livre']
 const GRUPO_DO_PESO: Record<Prioridade, string> = {
-  essencial: 'Essenciais do ciclo',
-  base: 'Padrão mínimo das áreas',
-  livre: 'Registro livre',
+  essencial: 'Em construção',
+  base: 'Padrão mínimo',
+  livre: 'Acompanhamento',
+}
+const DESCRICAO_DO_PESO: Record<Prioridade, string> = {
+  essencial: 'O que você está adotando agora: meta na semana, versão mínima e atenção.',
+  base: 'O mínimo que segura as áreas fora do foco.',
+  livre: 'Registro quando der. Dia sem toque não é falha.',
 }
 
-type Habito = {
+// O filtro de área e o modo (dia ou histórico) ficam lembrados neste aparelho.
+function lembrado(chave: string): string | null {
+  try {
+    return localStorage.getItem(chave)
+  } catch {
+    return null
+  }
+}
+function lembrar(chave: string, valor: string | null) {
+  try {
+    if (valor === null) localStorage.removeItem(chave)
+    else localStorage.setItem(chave, valor)
+  } catch {
+    // sem armazenamento: o filtro vale só nesta visita
+  }
+}
+
+export type Habito = {
   id: number
   nome: string
   tipo: 'sim_nao' | 'quantidade'
@@ -41,7 +66,7 @@ type Habito = {
   area: { id: number; nome: string; ordem: number }
 }
 
-type Metrica = {
+export type Metrica = {
   id: number
   nome: string
   unidade: string
@@ -50,7 +75,7 @@ type Metrica = {
 }
 
 // Vem de v_habito_registro: "conta" é decidido pelo banco, não aqui.
-type Registro = { habito_id: number; data: Dia; estado: Estado; valor: number | null; conta: boolean }
+export type Registro = { habito_id: number; data: Dia; estado: Estado; valor: number | null; conta: boolean }
 type Semana = {
   habito_id: number
   dias_que_contam: number
@@ -94,7 +119,7 @@ export function Habitos({
   soHoje = false,
   marcarComo = 'feito',
   mostrarMinima = false,
-  agruparPor = 'area',
+  agruparPor = 'peso',
   diaInicial,
 }: {
   areaId?: number
@@ -123,6 +148,55 @@ export function Habitos({
   const [medidas, setMedidas] = useState<Medida[]>([])
   const [erro, setErro] = useState<string | null>(null)
   const [editando, setEditando] = useState<Editando | null>(null)
+  const [historicoDe, setHistoricoDe] = useState<{ habito: Habito } | { metrica: Metrica } | null>(null)
+  // Filtro e modo só existem na tela cheia de Hábitos; embutida, ela segue quem a chamou.
+  const comControles = !embutido && areaId === undefined
+  const [areaFiltro, setAreaFiltro] = useState<number | null>(() =>
+    comControles && lembrado('habitos.area') ? Number(lembrado('habitos.area')) : null,
+  )
+  const [modo, setModo] = useState<'dia' | 'historico'>(() =>
+    comControles && lembrado('habitos.modo') === 'historico' ? 'historico' : 'dia',
+  )
+  const [vagas, setVagas] = useState<number | null>(null)
+  useEffect(() => {
+    if (!comControles) return
+    supabase
+      .from('parametro')
+      .select('valor')
+      .eq('chave', 'habitos_essenciais_max')
+      .maybeSingle()
+      .then(({ data }) => setVagas(data ? Number(data.valor) : null))
+  }, [comControles])
+  // Hábitos em construção que bateram a meta nas últimas 4 semanas completas:
+  // candidatos a graduar para acompanhamento, abrindo a vaga para o próximo.
+  const [graduaveis, setGraduaveis] = useState<number[]>([])
+  useEffect(() => {
+    if (embutido) return
+    let cancelado = false
+    supabase
+      .from('v_habito_semana')
+      .select('habito_id, semana, dias_que_contam, meta_ajustada')
+      .gte('semana', somarDias(semanaAtual, -28))
+      .lt('semana', semanaAtual)
+      .then(({ data }) => {
+        if (cancelado || !data) return
+        const naMeta = new Map<number, number>()
+        for (const w of data as { habito_id: number; dias_que_contam: number; meta_ajustada: number | null }[]) {
+          if (w.meta_ajustada !== null && w.dias_que_contam >= w.meta_ajustada)
+            naMeta.set(w.habito_id, (naMeta.get(w.habito_id) ?? 0) + 1)
+        }
+        setGraduaveis([...naMeta.entries()].filter(([, n]) => n >= 4).map(([id]) => id))
+      })
+    return () => {
+      cancelado = true
+    }
+  }, [embutido, semanaAtual, versaoDoCadastro])
+
+  async function graduar(h: Habito) {
+    const { error } = await supabase.from('habito').update({ prioridade: 'livre' }).eq('id', h.id)
+    if (error) return setErro(`Não foi possível graduar "${h.nome}".`)
+    setVersaoDoCadastro((v) => v + 1)
+  }
 
   // Cadastro: muda pouco, carrega uma vez.
   useEffect(() => {
@@ -229,21 +303,35 @@ export function Habitos({
 
   if (habitos === null) return null
 
+  // As áreas que têm hábito ou medida, na ordem das áreas: as opções do filtro.
+  const areasDoFiltro = new Map<number, { nome: string; ordem: number; quantos: number }>()
+  for (const x of [...habitos, ...metricas]) {
+    const a = areasDoFiltro.get(x.area.id) ?? { nome: x.area.nome, ordem: x.area.ordem, quantos: 0 }
+    a.quantos++
+    areasDoFiltro.set(x.area.id, a)
+  }
+  const opcoesDeArea = [...areasDoFiltro.entries()].sort((a, b) => a[1].ordem - b[1].ordem)
+  const areaEmTela = areaId ?? (areaFiltro !== null && areasDoFiltro.has(areaFiltro) ? areaFiltro : undefined)
+  const emConstrucao = habitos.filter((h) => h.prioridade === 'essencial').length
+
   // Agrupa por área, na ordem das áreas; métricas vêm depois dos hábitos da área.
   const areas = new Map<string, { ordem: number; habitos: Habito[]; metricas: Metrica[] }>()
+  // Sem filtro, "Em construção" aparece mesmo vazia: é a vaga à espera do próximo hábito.
+  if (agruparPor === 'peso' && comControles && areaEmTela === undefined)
+    areas.set(GRUPO_DO_PESO.essencial, { ordem: 0, habitos: [], metricas: [] })
   // Dentro do grupo, os essenciais vêm primeiro.
   const porPeso = [...habitos].sort((a, b) => PESOS.indexOf(a.prioridade) - PESOS.indexOf(b.prioridade))
   for (const h of porPeso) {
-    if (areaId !== undefined && h.area.id !== areaId) continue
+    if (areaEmTela !== undefined && h.area.id !== areaEmTela) continue
     const [nome, ordem] =
       agruparPor === 'peso' ? [GRUPO_DO_PESO[h.prioridade], PESOS.indexOf(h.prioridade)] : [h.area.nome, h.area.ordem]
     const g = areas.get(nome) ?? { ordem, habitos: [], metricas: [] }
     g.habitos.push(h)
     areas.set(nome, g)
   }
-  // Métrica é sempre registro livre.
+  // Métrica é sempre acompanhamento.
   for (const m of metricas) {
-    if (areaId !== undefined && m.area.id !== areaId) continue
+    if (areaEmTela !== undefined && m.area.id !== areaEmTela) continue
     const [nome, ordem] =
       agruparPor === 'peso' ? [GRUPO_DO_PESO.livre, PESOS.indexOf('livre')] : [m.area.nome, m.area.ordem]
     const g = areas.get(nome) ?? { ordem, habitos: [], metricas: [] }
@@ -253,39 +341,105 @@ export function Habitos({
   const grupos = [...areas.entries()].sort((a, b) => a[1].ordem - b[1].ordem)
 
   return (
-    <Raiz className={classes('habitos', embutido && 'embutido', soHoje && 'so-hoje')}>
-      <header className="semana">
-        <button type="button" aria-label="Semana anterior" onClick={() => setDia(somarDias(dia, -7))}>
-          ‹
-        </button>
-        <div>
-          <h1 className="titulo-tela">{intervaloDaSemana(semana)}</h1>
-          <p className="dia-em-tela">
-            {porExtenso(dia)}
-            {dia === diaDeHoje ? (
-              ' · hoje'
-            ) : (
-              <>
-                {' · '}
-                <button type="button" className="link" onClick={() => setDia(diaDeHoje)}>
-                  voltar para hoje
+    <Raiz
+      className={classes(
+        'habitos',
+        embutido && 'embutido',
+        soHoje && 'so-hoje',
+        modo === 'historico' && 'em-historico',
+      )}
+    >
+      {modo === 'historico' ? (
+        <header className="cabecalho-do-historico">
+          <h1 className="titulo-tela">Histórico</h1>
+          <p className="dia-em-tela">Últimas 12 semanas. Toque num hábito para ver seis meses.</p>
+        </header>
+      ) : (
+        <header className="semana">
+          <button type="button" aria-label="Semana anterior" onClick={() => setDia(somarDias(dia, -7))}>
+            ‹
+          </button>
+          <div>
+            <h1 className="titulo-tela">{intervaloDaSemana(semana)}</h1>
+            <p className="dia-em-tela">
+              {porExtenso(dia)}
+              {dia === diaDeHoje ? (
+                ' · hoje'
+              ) : (
+                <>
+                  {' · '}
+                  <button type="button" className="link" onClick={() => setDia(diaDeHoje)}>
+                    voltar para hoje
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Próxima semana"
+            disabled={semana === semanaAtual}
+            onClick={() => {
+              const d = somarDias(dia, 7)
+              setDia(d > diaDeHoje ? diaDeHoje : d)
+            }}
+          >
+            ›
+          </button>
+        </header>
+      )}
+
+      {comControles && (
+        <div className="controles-dos-habitos">
+          <div className="segmentos" role="radiogroup" aria-label="Ver">
+            {(['dia', 'historico'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={modo === m}
+                className={modo === m ? 'ativo' : undefined}
+                onClick={() => {
+                  setModo(m)
+                  lembrar('habitos.modo', m)
+                }}
+              >
+                {m === 'dia' ? 'Dia' : 'Histórico'}
+              </button>
+            ))}
+          </div>
+          {opcoesDeArea.length > 1 && (
+            <div className="fatias" role="group" aria-label="Filtrar por área">
+              <button
+                type="button"
+                aria-pressed={areaEmTela === undefined}
+                onClick={() => {
+                  setAreaFiltro(null)
+                  lembrar('habitos.area', null)
+                }}
+              >
+                Todas
+              </button>
+              {opcoesDeArea.map(([id, a]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={areaEmTela === id}
+                  onClick={() => {
+                    const novo = areaEmTela === id ? null : id
+                    setAreaFiltro(novo)
+                    lembrar('habitos.area', novo === null ? null : String(novo))
+                  }}
+                >
+                  <i className="ponto-da-area" style={{ background: corDaArea(a.nome) }} />
+                  {a.nome}
+                  <small>{a.quantos}</small>
                 </button>
-              </>
-            )}
-          </p>
+              ))}
+            </div>
+          )}
         </div>
-        <button
-          type="button"
-          aria-label="Próxima semana"
-          disabled={semana === semanaAtual}
-          onClick={() => {
-            const d = somarDias(dia, 7)
-            setDia(d > diaDeHoje ? diaDeHoje : d)
-          }}
-        >
-          ›
-        </button>
-      </header>
+      )}
 
       {erro && (
         <p className="erro" role="alert">
@@ -293,177 +447,303 @@ export function Habitos({
         </p>
       )}
 
-      <div className="dias cabecalho" role="tablist" aria-label="Dia da semana">
-        {dias.map((d, i) => (
-          <button
-            key={d}
-            type="button"
-            role="tab"
-            aria-selected={d === dia}
-            aria-label={porExtenso(d)}
-            className={classes(d === dia && 'selecionado', d === diaDeHoje && 'hoje')}
-            disabled={d > diaDeHoje}
-            onClick={() => setDia(d)}
-          >
-            {LETRAS_DA_SEMANA[i]}
-            <small>{diaDoMes(d)}</small>
-          </button>
-        ))}
-      </div>
+      {modo === 'historico' ? (
+        <HistoricoDosHabitos
+          grupos={grupos.map(([titulo, g]) => ({ titulo, habitos: g.habitos, metricas: g.metricas }))}
+          semanas={12}
+          versao={versaoDoCadastro}
+          aoAbrir={setHistoricoDe}
+        />
+      ) : (
+        <>
+          <div className="dias cabecalho" role="tablist" aria-label="Dia da semana">
+            {dias.map((d, i) => (
+              <button
+                key={d}
+                type="button"
+                role="tab"
+                aria-selected={d === dia}
+                aria-label={porExtenso(d)}
+                className={classes(d === dia && 'selecionado', d === diaDeHoje && 'hoje')}
+                disabled={d > diaDeHoje}
+                onClick={() => setDia(d)}
+              >
+                {LETRAS_DA_SEMANA[i]}
+                <small>{diaDoMes(d)}</small>
+              </button>
+            ))}
+          </div>
 
-      {grupos.length === 0 && (
-        <p className="vazio">
-          {areaId === undefined ? 'Nenhum hábito cadastrado ainda.' : 'Esta área ainda não tem hábitos.'}
-        </p>
-      )}
+          {grupos.length === 0 && (
+            <p className="vazio">
+              {areaEmTela === undefined ? 'Nenhum hábito cadastrado ainda.' : 'Esta área ainda não tem hábitos.'}
+            </p>
+          )}
 
-      <div className="grupos">
-        {grupos.map(([area, g]) => (
-          <Grupo
-            key={area}
-            titulo={areaId === undefined ? area : null}
-            recolhido={agruparPor === 'peso' && area === GRUPO_DO_PESO.livre}
-            quantos={g.habitos.length + g.metricas.length}
-          >
-            {g.habitos.map((h) => {
-              const limite = limiteDoHabito(h)
-              const r = registros.find((x) => x.habito_id === h.id && x.data === dia)
-              const foraDoDia = h.dias_da_semana !== null && !h.dias_da_semana.includes(indiceDoDia)
-              return (
-                <div key={h.id} className="linha">
-                  <div className="rotulo">
-                    <span className="nome">
-                      {h.nome}
-                      {agruparPor === 'area' && h.prioridade === 'essencial' && (
-                        <small className="chip">essencial</small>
-                      )}
-                      {agruparPor === 'area' && h.prioridade === 'base' && (
-                        <small className="chip neutro">padrão mínimo</small>
-                      )}
-                      {limite && <small>{limite}</small>}
-                      {mostrarMinima && h.versao_minima && <small>mínimo: {h.versao_minima}</small>}
-                    </span>
-                    <span className="na-semana">
-                      <span className="marcas" aria-hidden="true">
-                        {dias.map((d) => (
-                          <i
-                            key={d}
-                            className={classes(
-                              classeDaCelula(registros.find((x) => x.habito_id === h.id && x.data === d)),
-                              d === dia && 'atual',
-                            )}
-                          />
-                        ))}
-                      </span>
-                      <span className="resumo">
-                        {resumoDaSemana(
-                          h,
-                          semanas.find((s) => s.habito_id === h.id),
-                        )}
-                      </span>
-                    </span>
-                    {h.meta_dias !== null && (
-                      <MetaDaSemana semana={semanas.find((s) => s.habito_id === h.id)} meta={h.meta_dias} />
-                    )}
+          <div className="grupos">
+            {grupos.map(([area, g]) =>
+              agruparPor === 'peso' && area === GRUPO_DO_PESO.livre ? (
+                <section key={area} className="acompanhamento camada camada-livre">
+                  <h2>{area}</h2>
+                  {comControles && <p className="descricao-da-camada">{DESCRICAO_DO_PESO.livre}</p>}
+                  <div className="fichas" role="group" aria-label="Acompanhamento">
+                    {g.habitos.map((h) => {
+                      const r = registros.find((x) => x.habito_id === h.id && x.data === dia)
+                      const marcado = r?.estado === 'feito' || r?.estado === 'minimo'
+                      return (
+                        <button
+                          key={h.id}
+                          type="button"
+                          className={classes('ficha', marcado && 'marcada')}
+                          aria-pressed={marcado}
+                          onClick={() =>
+                            h.tipo === 'sim_nao'
+                              ? tocar(h, dia, r, 'sim')
+                              : setEditando({ tipo: 'habito', habito: h, dia })
+                          }
+                        >
+                          <i className="ponto-da-area" style={{ background: corDaArea(h.area.nome) }} />
+                          {h.nome}
+                          {h.tipo === 'quantidade' && r?.valor != null && (
+                            <small>
+                              {numero.format(r.valor)} {h.unidade}
+                            </small>
+                          )}
+                        </button>
+                      )
+                    })}
+                    {g.metricas.map((m) => {
+                      const medida = medidas.find((x) => x.metrica_id === m.id && x.data === dia)
+                      return (
+                        <button
+                          key={`m${m.id}`}
+                          type="button"
+                          className={classes('ficha', medida && 'marcada')}
+                          onClick={() => setEditando({ tipo: 'metrica', metrica: m, dia })}
+                        >
+                          <i className="ponto-da-area" style={{ background: corDaArea(m.area.nome) }} />
+                          {m.nome}
+                          {medida && (
+                            <small>
+                              {numero.format(medida.valor)} {m.unidade}
+                            </small>
+                          )}
+                        </button>
+                      )
+                    })}
                   </div>
-                  {h.tipo === 'sim_nao' ? (
-                    <div className="botoes-habito">
-                      <Celula
-                        rotulo={`${h.nome}, ${porExtenso(dia)}: marcar feito (agora: ${textoDoEstado(h, r)})`}
-                        desligada={foraDoDia}
-                        classe={
-                          classes(
-                            'pequena',
-                            r?.estado === 'feito' && 'feito',
-                            r?.estado === 'minimo' && 'minimo',
-                            r?.estado === 'dispensado' && 'dispensado',
-                          ) ?? ''
-                        }
-                        aoTocar={() => tocar(h, dia, r, 'sim')}
-                        aoSegurar={() => setEditando({ tipo: 'habito', habito: h, dia })}
-                      >
-                        {r?.estado === 'minimo' ? 'mín' : r?.estado === 'dispensado' ? '–' : '✓'}
-                      </Celula>
-                      <Celula
-                        rotulo={`${h.nome}, ${porExtenso(dia)}: marcar não fiz`}
-                        desligada={foraDoDia}
-                        classe={classes('pequena', r?.estado === 'nao' && 'nao') ?? ''}
-                        aoTocar={() => tocar(h, dia, r, 'nao')}
-                        aoSegurar={() => setEditando({ tipo: 'habito', habito: h, dia })}
-                      >
-                        ✕
-                      </Celula>
-                    </div>
-                  ) : (
-                    <Celula
-                      rotulo={`${h.nome}, ${porExtenso(dia)}: ${textoDoEstado(h, r)}`}
-                      desligada={foraDoDia}
-                      classe={classes('campo-numero', classeDaCelula(r)) ?? ''}
-                      aoTocar={() => tocar(h, dia, r)}
-                      aoSegurar={() => setEditando({ tipo: 'habito', habito: h, dia })}
-                    >
-                      <CampoNumero
-                        valor={r?.estado === 'dispensado' ? null : (r?.valor ?? null)}
-                        unidade={h.unidade ?? ''}
-                        dispensado={r?.estado === 'dispensado'}
-                      />
-                    </Celula>
+                </section>
+              ) : (
+                <Grupo
+                  key={area}
+                  titulo={areaId === undefined ? area : null}
+                  recolhido={false}
+                  quantos={g.habitos.length + g.metricas.length}
+                  classe={agruparPor === 'peso' ? `camada camada-${pesoDoGrupo(area)}` : undefined}
+                  detalhe={
+                    comControles && pesoDoGrupo(area) === 'essencial' && vagas !== null
+                      ? `${emConstrucao} de ${vagas} vagas`
+                      : undefined
+                  }
+                  descricao={
+                    comControles && agruparPor === 'peso' ? DESCRICAO_DO_PESO[pesoDoGrupo(area) ?? 'base'] : undefined
+                  }
+                >
+                  {g.habitos.length === 0 && g.metricas.length === 0 && (
+                    <p className="vazio-da-camada">
+                      Nenhum hábito em construção. Quando quiser adotar um, cadastre abaixo com meta e versão mínima.
+                    </p>
                   )}
-                </div>
-              )
-            })}
-            {g.metricas.map((m) => {
-              const medida = medidas.find((x) => x.metrica_id === m.id && x.data === dia)
-              const abrir = () => setEditando({ tipo: 'metrica', metrica: m, dia })
-              return (
-                <div key={`m${m.id}`} className="linha">
-                  <div className="rotulo">
-                    <span className="nome">
-                      {m.nome}
-                      <small>{m.unidade}</small>
-                    </span>
-                    <span className="na-semana">
-                      <span className="marcas" aria-hidden="true">
-                        {dias.map((d) => (
-                          <i
-                            key={d}
-                            className={classes(
-                              medidas.some((x) => x.metrica_id === m.id && x.data === d) && 'feito',
-                              d === dia && 'atual',
+                  {g.habitos.map((h) => {
+                    const limite = limiteDoHabito(h)
+                    const r = registros.find((x) => x.habito_id === h.id && x.data === dia)
+                    const foraDoDia = h.dias_da_semana !== null && !h.dias_da_semana.includes(indiceDoDia)
+                    return (
+                      <div key={h.id} className="linha">
+                        <div className="rotulo">
+                          <span className="nome">
+                            {agruparPor === 'peso' && areaId === undefined && (
+                              <i className="ponto-da-area" style={{ background: corDaArea(h.area.nome) }} />
                             )}
-                          />
-                        ))}
-                      </span>
-                    </span>
-                  </div>
-                  <Celula
-                    rotulo={`${m.nome}, ${porExtenso(dia)}: ${
-                      medida ? `${numero.format(medida.valor)} ${m.unidade}` : 'sem registro'
-                    }`}
-                    desligada={false}
-                    classe="campo-numero"
-                    aoTocar={abrir}
-                    aoSegurar={abrir}
-                  >
-                    <CampoNumero valor={medida?.valor ?? null} unidade={m.unidade} dispensado={false} />
-                  </Celula>
-                </div>
-              )
-            })}
-          </Grupo>
-        ))}
-      </div>
+                            {soHoje ? (
+                              h.nome
+                            ) : (
+                              <button
+                                type="button"
+                                className="nome-do-habito"
+                                aria-label={`Histórico de ${h.nome}`}
+                                onClick={() => setHistoricoDe({ habito: h })}
+                              >
+                                {h.nome}
+                              </button>
+                            )}
+                            {agruparPor === 'area' && h.prioridade === 'essencial' && (
+                              <small className="chip">em construção</small>
+                            )}
+                            {agruparPor === 'area' && h.prioridade === 'base' && (
+                              <small className="chip neutro">padrão mínimo</small>
+                            )}
+                            {limite && <small>{limite}</small>}
+                            {mostrarMinima && h.versao_minima && <small>mínimo: {h.versao_minima}</small>}
+                          </span>
+                          <span className="na-semana">
+                            <span className="marcas" aria-hidden="true">
+                              {dias.map((d) => (
+                                <i
+                                  key={d}
+                                  className={classes(
+                                    classeDaCelula(registros.find((x) => x.habito_id === h.id && x.data === d)),
+                                    d === dia && 'atual',
+                                  )}
+                                />
+                              ))}
+                            </span>
+                            <span className="resumo">
+                              {resumoDaSemana(
+                                h,
+                                semanas.find((s) => s.habito_id === h.id),
+                              )}
+                            </span>
+                          </span>
+                          {h.meta_dias !== null && (
+                            <MetaDaSemana semana={semanas.find((s) => s.habito_id === h.id)} meta={h.meta_dias} />
+                          )}
+                          {h.prioridade === 'essencial' && graduaveis.includes(h.id) && (
+                            <span className="graduar">
+                              4 semanas na meta: já virou rotina?{' '}
+                              <button type="button" className="link" onClick={() => graduar(h)}>
+                                passar para acompanhamento
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                        {h.tipo === 'sim_nao' ? (
+                          <div className="botoes-habito">
+                            <Celula
+                              rotulo={`${h.nome}, ${porExtenso(dia)}: marcar feito (agora: ${textoDoEstado(h, r)})`}
+                              desligada={foraDoDia}
+                              classe={
+                                classes(
+                                  'pequena',
+                                  r?.estado === 'feito' && 'feito',
+                                  r?.estado === 'minimo' && 'minimo',
+                                  r?.estado === 'dispensado' && 'dispensado',
+                                ) ?? ''
+                              }
+                              aoTocar={() => tocar(h, dia, r, 'sim')}
+                              aoSegurar={() => setEditando({ tipo: 'habito', habito: h, dia })}
+                            >
+                              {r?.estado === 'minimo' ? 'mín' : r?.estado === 'dispensado' ? '–' : '✓'}
+                            </Celula>
+                            <Celula
+                              rotulo={`${h.nome}, ${porExtenso(dia)}: marcar não fiz`}
+                              desligada={foraDoDia}
+                              classe={classes('pequena', r?.estado === 'nao' && 'nao') ?? ''}
+                              aoTocar={() => tocar(h, dia, r, 'nao')}
+                              aoSegurar={() => setEditando({ tipo: 'habito', habito: h, dia })}
+                            >
+                              ✕
+                            </Celula>
+                          </div>
+                        ) : (
+                          <Celula
+                            rotulo={`${h.nome}, ${porExtenso(dia)}: ${textoDoEstado(h, r)}`}
+                            desligada={foraDoDia}
+                            classe={classes('campo-numero', classeDaCelula(r)) ?? ''}
+                            aoTocar={() => tocar(h, dia, r)}
+                            aoSegurar={() => setEditando({ tipo: 'habito', habito: h, dia })}
+                          >
+                            <CampoNumero
+                              valor={r?.estado === 'dispensado' ? null : (r?.valor ?? null)}
+                              unidade={h.unidade ?? ''}
+                              dispensado={r?.estado === 'dispensado'}
+                            />
+                          </Celula>
+                        )}
+                      </div>
+                    )
+                  })}
+                  {g.metricas.map((m) => {
+                    const medida = medidas.find((x) => x.metrica_id === m.id && x.data === dia)
+                    const abrir = () => setEditando({ tipo: 'metrica', metrica: m, dia })
+                    return (
+                      <div key={`m${m.id}`} className="linha">
+                        <div className="rotulo">
+                          <span className="nome">
+                            {soHoje ? (
+                              m.nome
+                            ) : (
+                              <button
+                                type="button"
+                                className="nome-do-habito"
+                                aria-label={`Histórico de ${m.nome}`}
+                                onClick={() => setHistoricoDe({ metrica: m })}
+                              >
+                                {m.nome}
+                              </button>
+                            )}
+                            <small>{m.unidade}</small>
+                          </span>
+                          <span className="na-semana">
+                            <span className="marcas" aria-hidden="true">
+                              {dias.map((d) => (
+                                <i
+                                  key={d}
+                                  className={classes(
+                                    medidas.some((x) => x.metrica_id === m.id && x.data === d) && 'feito',
+                                    d === dia && 'atual',
+                                  )}
+                                />
+                              ))}
+                            </span>
+                          </span>
+                        </div>
+                        <Celula
+                          rotulo={`${m.nome}, ${porExtenso(dia)}: ${
+                            medida ? `${numero.format(medida.valor)} ${m.unidade}` : 'sem registro'
+                          }`}
+                          desligada={false}
+                          classe="campo-numero"
+                          aoTocar={abrir}
+                          aoSegurar={abrir}
+                        >
+                          <CampoNumero valor={medida?.valor ?? null} unidade={m.unidade} dispensado={false} />
+                        </Celula>
+                      </div>
+                    )
+                  })}
+                </Grupo>
+              ),
+            )}
+          </div>
+        </>
+      )}
 
       <details className="como-funciona dica">
         <summary>Como funciona</summary>
         <p>
-          ✓ marca feito e ✕ marca "não fiz"; tocar de novo limpa. Nos números, toque para digitar. Segure para versão
-          mínima ou para dispensar o dia. Os quadradinhos mostram a semana, e a barra fina, a meta semanal.
+          Três camadas. <strong>Em construção</strong>: os poucos hábitos que você está adotando agora, com meta na
+          semana e versão mínima. <strong>Padrão mínimo</strong>: o que segura as áreas fora do foco.{' '}
+          <strong>Acompanhamento</strong>: o que vale registrar quando der (suplementos, passos, peso). Um toque marca,
+          e dia sem toque não é falha.
+        </p>
+        <p>
+          Nas duas primeiras, ✓ marca feito e ✕ marca "não fiz"; tocar de novo limpa. Segure para versão mínima ou para
+          dispensar o dia. Quando um hábito em construção passa 4 semanas na meta, o hub sugere levá-lo para
+          acompanhamento, abrindo a vaga para o próximo.
+        </p>
+        <p>
+          O filtro de área mostra só os hábitos de uma área. Em Histórico, cada hábito aparece como um calendário das
+          últimas semanas (uma coluna por semana, de domingo a sábado) e, se tem meta, uma faixa embaixo com as semanas
+          em que ela foi cumprida. Tocar no nome de um hábito abre seis meses.
         </p>
       </details>
 
       {!embutido && <CadastroDeHabitos aoMudar={() => setVersaoDoCadastro((v) => v + 1)} />}
 
+      {historicoDe && (
+        <FolhaDoHistorico alvo={historicoDe} versao={versaoDoCadastro} aoFechar={() => setHistoricoDe(null)} />
+      )}
       {editando?.tipo === 'habito' && (
         <FolhaDoHabito
           key={`${editando.habito.id}-${editando.dia}`}
@@ -501,11 +781,17 @@ function Grupo({
   titulo,
   recolhido,
   quantos,
+  classe,
+  detalhe,
+  descricao,
   children,
 }: {
   titulo: string | null
   recolhido: boolean
   quantos: number
+  classe?: string
+  detalhe?: string
+  descricao?: string
   children: ReactNode
 }) {
   if (recolhido) {
@@ -519,11 +805,21 @@ function Grupo({
     )
   }
   return (
-    <section>
-      {titulo && <h2>{titulo}</h2>}
+    <section className={classe}>
+      {titulo && (
+        <h2>
+          {titulo}
+          {detalhe && <span className="vagas">{detalhe}</span>}
+        </h2>
+      )}
+      {descricao && <p className="descricao-da-camada">{descricao}</p>}
       {children}
     </section>
   )
+}
+
+function pesoDoGrupo(titulo: string): Prioridade | undefined {
+  return PESOS.find((p) => GRUPO_DO_PESO[p] === titulo)
 }
 
 function classes(...nomes: (string | false | null | undefined)[]): string | undefined {

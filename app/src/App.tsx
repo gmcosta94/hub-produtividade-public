@@ -16,10 +16,10 @@ import { Folha } from './componentes/Folha'
 import { Icone } from './componentes/Icones'
 
 type Grupo = 'dia' | 'reflexao' | 'sistema'
-const TELAS: { id: Tela; nome: string; grupo: Grupo }[] = [
+const TELAS: { id: Tela; nome: string; curto?: string; grupo: Grupo }[] = [
   { id: 'hoje', nome: 'Hoje', grupo: 'dia' },
   { id: 'habitos', nome: 'Hábitos', grupo: 'dia' },
-  { id: 'tarefas', nome: 'Tarefas', grupo: 'dia' },
+  { id: 'tarefas', nome: 'Projetos e Tarefas', curto: 'Tarefas', grupo: 'dia' },
   { id: 'notas', nome: 'Notas', grupo: 'dia' },
   { id: 'areas', nome: 'Áreas', grupo: 'reflexao' },
   { id: 'plano', nome: 'Plano', grupo: 'reflexao' },
@@ -132,7 +132,7 @@ export default function App() {
             onClick={() => ir({ tela: t.id })}
           >
             <Icone nome={t.id} />
-            {t.nome}
+            {t.curto ?? t.nome}
           </button>
         ))}
         <button

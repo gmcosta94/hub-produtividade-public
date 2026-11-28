@@ -86,6 +86,49 @@ Criar direto na coluna, arrastar entre colunas (computador), tocar para
 editar, marcar o dia (vai para os espaços de Hoje), ligar a objetivo,
 projeto ou área, e excluir. No celular, uma coluna por vez.
 
+## Projetos e Tarefas, e hábitos em camadas (27/11/2026)
+
+Migração `20261127000015_projetos_e_camadas.sql`:
+
+- `projeto.estado` ganha `algum_dia`; `projeto.cliente` (texto livre) separa
+  as frentes do trabalho. O limite de ativos vale por frente: pessoais (sem
+  cliente) até `projetos_ativos_max`, cada cliente até
+  `projetos_por_cliente_max` (2), sem diferença de maiúsculas.
+- `v_projeto` ganha `cliente` e `tarefas_na_semana`; `v_tarefa`, `cliente`.
+- A conferência do ciclo conta só projetos pessoais e fala em hábitos em
+  construção.
+
+A aba Tarefas virou **Projetos e Tarefas**, em três faixas:
+
+1. Entrada: cada item vira tarefa, projeto ou nota, é feito na hora (regra
+   dos 2 minutos) ou descartado.
+2. Quadro de projetos: Algum dia (inclui pausados) · Ativos · Concluídos
+   (recolhido). Projeto ativo sem tarefa na semana aparece "sem próxima ação".
+3. Quadro da semana: o mesmo componente do Plano (`QuadroDaSemana`, em
+   `app/src/telas/Semana.tsx`). Os dois leem o banco; mexer num muda o outro.
+
+Sem subtarefas: tarefa grande demais é projeto.
+
+Hábitos: os pesos do banco continuam `essencial`, `base` e `livre`, e na
+tela viram **Em construção**, **Padrão mínimo** e **Acompanhamento**. O
+acompanhamento aparece em fichas (um toque marca; número abre a folha), sem
+"0 de 5", sem ✕ e sem pendência. Hábito em construção que bate a meta 4
+semanas seguidas recebe a sugestão de passar para acompanhamento.
+
+A tela de Hábitos (sem tabela nova; lê `v_habito_registro`, `v_habito_semana`
+e `metrica_registro`):
+
+- Filtro de área no alto, em fatias (Todas · cada área com hábito). Fica
+  lembrado no aparelho. As vagas de "em construção" continuam globais.
+- Cada camada tem título e uma frase do que ela é; "Em construção" mostra as
+  vagas (`habitos_essenciais_max`) e aparece mesmo vazia, como vaga aberta.
+- Modo **Histórico**: um calendário por hábito nas últimas 12 semanas (uma
+  coluna por semana, domingo no alto), com a faixa das semanas que bateram a
+  meta; medidas como o peso viram uma linha com máximo e mínimo. Tocar num
+  hábito (ou no nome dele, no modo Dia) abre seis meses numa folha. O resumo é
+  neutro ("na meta em 8 de 11 semanas"); não há sequência nem contador de
+  falhas.
+
 ## Próximas fases
 
 2. ~~Plano semanal com quadro~~ (feito em 20/11/2026, ver abaixo). Falta

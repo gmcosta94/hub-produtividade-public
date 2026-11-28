@@ -1,10 +1,11 @@
-import { useState, type DragEvent, type FormEvent } from 'react'
+import { useEffect, useState, type DragEvent, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { corDaArea } from '../lib/areas'
 import { diasDaSemana, hoje, inicioDaSemana, intervaloDaSemana, porExtenso, somarDias } from '../lib/datas'
 import { numero } from '../lib/formato'
 import { textoDoErro, useConsulta, type Ir } from '../lib/dados'
 import { Folha } from '../componentes/Folha'
+import { useObjetivosDoCiclo, type ObjetivoDoCiclo } from '../lib/objetivos'
 
 export type CicloDaSemana = {
   id: number
@@ -13,15 +14,9 @@ export type CicloDaSemana = {
   horas_livres: number | null
 }
 type AreaCurta = { id: number; nome: string }
-type Objetivo = {
-  id: number
-  area_id: number
-  titulo: string
-  pronto_quando: string | null
-  minimo: string | null
-}
-type ProjetoCurto = { id: number; nome: string; area_id: number; objetivo_id: number | null }
-type Tarefa = {
+type Objetivo = ObjetivoDoCiclo
+type ProjetoCurto = { id: number; nome: string; area_id: number; objetivo_id: number | null; cliente: string | null }
+export type Tarefa = {
   id: number
   titulo: string
   detalhe: string | null
@@ -35,8 +30,9 @@ type Tarefa = {
   objetivo_id: number | null
   objetivo: string | null
   em_andamento: boolean
+  cliente: string | null
 }
-type Coluna = 'backlog' | 'afazer' | 'fazendo' | 'feito'
+export type Coluna = 'backlog' | 'afazer' | 'fazendo' | 'feito'
 type SemanaLinha = { intencao: string | null; revisao: string | null }
 
 const COLUNAS: { id: Coluna; nome: string; ajuda: string }[] = [
@@ -50,7 +46,7 @@ const COLUNAS: { id: Coluna; nome: string; ajuda: string }[] = [
   { id: 'feito', nome: 'Feito', ajuda: 'Concluído nesta semana.' },
 ]
 const CAMPOS =
-  'id, titulo, detalhe, estado, area_id, area, projeto_id, projeto, dia, semana, objetivo_id, objetivo, em_andamento'
+  'id, titulo, detalhe, estado, area_id, area, projeto_id, projeto, dia, semana, objetivo_id, objetivo, em_andamento, cliente'
 const curtoDoDia = (dia: string) => porExtenso(dia).split(',')[0]
 
 function colunaDa(t: Tarefa, inicio: string): Coluna {
@@ -59,23 +55,111 @@ function colunaDa(t: Tarefa, inicio: string): Coluna {
   return t.em_andamento ? 'fazendo' : 'afazer'
 }
 
-// O plano semanal: lembra os objetivos do ciclo e monta a semana num quadro.
-// As tarefas daqui são as mesmas de Tarefas e de Hoje: marcar o dia leva a
-// tarefa para os espaços daquele dia.
+// O plano semanal: lembra os objetivos do ciclo e monta a semana no quadro.
+// O quadro é o mesmo de Projetos e Tarefas: mexer num lugar muda no outro.
 export function PlanoSemanal({ ciclo, areas, ir }: { ciclo: CicloDaSemana | null; areas: AreaCurta[]; ir: Ir }) {
   const [inicio, setInicio] = useState(inicioDaSemana(hoje()))
-  const objetivos = useConsulta<Objetivo[]>(
-    () =>
-      supabase
-        .from('objetivo')
-        .select('id, area_id, titulo, pronto_quando, minimo')
-        .eq('ciclo_id', ciclo?.id ?? -1)
-        .eq('estado', 'ativo')
-        .order('id'),
-    [ciclo?.id],
+  const objetivos = useObjetivosDoCiclo(ciclo?.id)
+  const [daSemana, setDaSemana] = useState<Tarefa[] | null>(null)
+  const [pedido, setPedido] = useState<PedidoDeTarefa | null>(null)
+  const atual = inicioDaSemana(hoje())
+  const emAndamento = (daSemana ?? []).filter((t) => t.estado === 'aberta' && t.semana === inicio).length
+
+  return (
+    <div className="plano-semanal">
+      <NavegarSemana inicio={inicio} atual={atual} aoMudar={setInicio} />
+
+      <ObjetivosDoCiclo
+        key={inicio}
+        ciclo={ciclo}
+        objetivos={objetivos.dados ?? []}
+        areas={areas}
+        tarefas={daSemana ?? []}
+        abertoNoInicio={daSemana !== null && emAndamento === 0}
+        aoCriarTarefa={(objetivoId) => setPedido({ coluna: 'afazer', objetivo_id: objetivoId, n: Date.now() })}
+        ir={ir}
+      />
+
+      <IntencaoDaSemana key={`i${inicio}`} inicio={inicio} />
+
+      <QuadroDaSemana
+        inicio={inicio}
+        objetivos={objetivos.dados ?? []}
+        areas={areas}
+        ir={ir}
+        pedido={pedido}
+        aoCarregarSemana={setDaSemana}
+      />
+    </div>
   )
-  const projetos = useConsulta<ProjetoCurto[]>(() =>
-    supabase.from('projeto').select('id, nome, area_id, objetivo_id').eq('estado', 'ativo').order('nome'),
+}
+
+export function NavegarSemana({
+  inicio,
+  atual,
+  aoMudar,
+}: {
+  inicio: string
+  atual: string
+  aoMudar: (inicio: string) => void
+}) {
+  return (
+    <div className="navegar-semana">
+      <button
+        type="button"
+        className="botao"
+        aria-label="Semana anterior"
+        onClick={() => aoMudar(somarDias(inicio, -7))}
+      >
+        ‹
+      </button>
+      <h2 className="titulo-bloco">
+        Semana de {intervaloDaSemana(inicio)}
+        {inicio !== atual && <small>{inicio > atual ? 'próxima' : 'passada'}</small>}
+      </h2>
+      <button type="button" className="botao" aria-label="Próxima semana" onClick={() => aoMudar(somarDias(inicio, 7))}>
+        ›
+      </button>
+      {inicio !== atual && (
+        <button type="button" className="link" onClick={() => aoMudar(atual)}>
+          esta semana
+        </button>
+      )}
+    </div>
+  )
+}
+
+export type PedidoDeTarefa = { coluna: Coluna; objetivo_id?: number; projeto_id?: number; n: number }
+
+// O quadro da semana: Backlog · A fazer · Fazendo · Feito. Lê as tarefas do
+// banco a cada mudança, então o Plano e Projetos e Tarefas mostram sempre o
+// mesmo. "versao" força uma releitura quando outra parte da tela mexeu nas
+// tarefas; "pedido" abre a folha de uma tarefa nova já com coluna e ligação.
+export function QuadroDaSemana({
+  inicio,
+  objetivos,
+  areas,
+  ir,
+  versao = 0,
+  pedido = null,
+  avisoDaEntrada = true,
+  aoCarregarSemana,
+  aoMudar,
+}: {
+  inicio: string
+  objetivos: Objetivo[]
+  areas: AreaCurta[]
+  ir: Ir
+  versao?: number
+  pedido?: PedidoDeTarefa | null
+  avisoDaEntrada?: boolean
+  aoCarregarSemana?: (tarefas: Tarefa[]) => void
+  aoMudar?: () => void
+}) {
+  const projetos = useConsulta<ProjetoCurto[]>(
+    () =>
+      supabase.from('projeto').select('id, nome, area_id, objetivo_id, cliente').eq('estado', 'ativo').order('nome'),
+    [versao],
   )
   const backlog = useConsulta<Tarefa[]>(
     () =>
@@ -85,7 +169,7 @@ export function PlanoSemanal({ ciclo, areas, ir }: { ciclo: CicloDaSemana | null
         .eq('estado', 'aberta')
         .or(`semana.is.null,semana.lt.${inicio}`)
         .order('criado_em'),
-    [inicio],
+    [inicio, versao],
   )
   const daSemana = useConsulta<Tarefa[]>(
     () =>
@@ -95,23 +179,35 @@ export function PlanoSemanal({ ciclo, areas, ir }: { ciclo: CicloDaSemana | null
         .eq('semana', inicio)
         .in('estado', ['aberta', 'feita'])
         .order('criado_em'),
-    [inicio],
+    [inicio, versao],
   )
-  const entrada = useConsulta<{ id: number }[]>(() => supabase.from('tarefa').select('id').eq('estado', 'entrada'))
-  const [editando, setEditando] = useState<Tarefa | { coluna: Coluna; objetivo_id?: number } | null>(null)
+  const entrada = useConsulta<{ id: number }[]>(
+    () => supabase.from('tarefa').select('id').eq('estado', 'entrada'),
+    [versao],
+  )
+  const [editando, setEditando] = useState<Tarefa | Omit<PedidoDeTarefa, 'n'> | null>(null)
   const [aba, setAba] = useState<Coluna>('afazer')
   const [arrastando, setArrastando] = useState<number | null>(null)
   const [erro, setErro] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (pedido) setEditando({ coluna: pedido.coluna, objetivo_id: pedido.objetivo_id, projeto_id: pedido.projeto_id })
+  }, [pedido])
+
+  useEffect(() => {
+    if (daSemana.dados) aoCarregarSemana?.(daSemana.dados)
+    // aoCarregarSemana é um setState do pai: estável.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [daSemana.dados])
+
   const todas = [...(backlog.dados ?? []), ...(daSemana.dados ?? [])]
   const porColuna = (c: Coluna) => todas.filter((t) => colunaDa(t, inicio) === c)
-  const listaDeObjetivos = objetivos.dados ?? []
-  const atual = inicioDaSemana(hoje())
 
   function recarregar() {
     backlog.recarregar()
     daSemana.recarregar()
     entrada.recarregar()
+    aoMudar?.()
   }
 
   async function mover(t: Tarefa, para: Coluna) {
@@ -136,47 +232,7 @@ export function PlanoSemanal({ ciclo, areas, ir }: { ciclo: CicloDaSemana | null
   }
 
   return (
-    <div className="plano-semanal">
-      <div className="navegar-semana">
-        <button
-          type="button"
-          className="botao"
-          aria-label="Semana anterior"
-          onClick={() => setInicio(somarDias(inicio, -7))}
-        >
-          ‹
-        </button>
-        <h2 className="titulo-bloco">
-          Semana de {intervaloDaSemana(inicio)}
-          {inicio !== atual && <small>{inicio > atual ? 'próxima' : 'passada'}</small>}
-        </h2>
-        <button
-          type="button"
-          className="botao"
-          aria-label="Próxima semana"
-          onClick={() => setInicio(somarDias(inicio, 7))}
-        >
-          ›
-        </button>
-        {inicio !== atual && (
-          <button type="button" className="link" onClick={() => setInicio(atual)}>
-            esta semana
-          </button>
-        )}
-      </div>
-
-      <ObjetivosDoCiclo
-        ciclo={ciclo}
-        objetivos={listaDeObjetivos}
-        areas={areas}
-        tarefas={daSemana.dados ?? []}
-        abertoNoInicio={porColuna('afazer').length + porColuna('fazendo').length === 0}
-        aoCriarTarefa={(objetivoId) => setEditando({ coluna: 'afazer', objetivo_id: objetivoId })}
-        ir={ir}
-      />
-
-      <IntencaoDaSemana key={inicio} inicio={inicio} />
-
+    <div className="quadro-da-semana-inteiro">
       <div className="segmentos espacado so-celular" role="tablist" aria-label="Colunas do quadro">
         {COLUNAS.map((c) => (
           <button
@@ -210,11 +266,11 @@ export function PlanoSemanal({ ciclo, areas, ir }: { ciclo: CicloDaSemana | null
               {c.nome}
               <small>{porColuna(c.id).length}</small>
             </h3>
-            {c.id === 'backlog' && (entrada.dados ?? []).length > 0 && (
+            {avisoDaEntrada && c.id === 'backlog' && (entrada.dados ?? []).length > 0 && (
               <p className="ajuda">
                 {(entrada.dados ?? []).length} na entrada para decidir.{' '}
                 <button type="button" className="link" onClick={() => ir({ tela: 'tarefas' })}>
-                  Abrir Tarefas
+                  Abrir a entrada
                 </button>
               </p>
             )}
@@ -225,16 +281,23 @@ export function PlanoSemanal({ ciclo, areas, ir }: { ciclo: CicloDaSemana | null
                     type="button"
                     className={`cartao-da-tarefa${t.estado === 'feita' ? ' feita' : ''}`}
                     draggable
-                    onDragStart={() => setArrastando(t.id)}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', String(t.id))
+                      e.dataTransfer.effectAllowed = 'move'
+                      setArrastando(t.id)
+                    }}
                     onDragEnd={() => setArrastando(null)}
                     onClick={() => setEditando(t)}
                   >
-                    <span className="titulo-da-tarefa">{t.titulo}</span>
+                    <span className="titulo-da-tarefa">
+                      {t.cliente && <small className="chip neutro">{t.cliente}</small>}
+                      {t.titulo}
+                    </span>
                     <small>
                       {t.area && <i className="ponto-da-area" style={{ background: corDaArea(t.area) }} />}
                       {[
                         t.dia && curtoDoDia(t.dia),
-                        t.objetivo ?? t.projeto ?? t.area,
+                        t.projeto ?? t.objetivo ?? t.area,
                         c.id === 'backlog' && t.semana && 'ficou de uma semana anterior',
                       ]
                         .filter(Boolean)
@@ -255,12 +318,15 @@ export function PlanoSemanal({ ciclo, areas, ir }: { ciclo: CicloDaSemana | null
 
       {editando && (
         <FolhaDaTarefa
-          key={'id' in editando ? editando.id : 'nova'}
+          key={
+            'id' in editando ? editando.id : `nova-${editando.coluna}-${editando.objetivo_id}-${editando.projeto_id}`
+          }
           inicio={inicio}
           tarefa={'id' in editando ? editando : null}
           colunaInicial={'id' in editando ? colunaDa(editando, inicio) : editando.coluna}
           objetivoInicial={'id' in editando ? editando.objetivo_id : (editando.objetivo_id ?? null)}
-          objetivos={listaDeObjetivos}
+          projetoInicial={'id' in editando ? editando.projeto_id : (editando.projeto_id ?? null)}
+          objetivos={objetivos}
           projetos={projetos.dados ?? []}
           areas={areas}
           aoFechar={() => setEditando(null)}
@@ -432,11 +498,12 @@ function NovaNaColuna({
   )
 }
 
-function FolhaDaTarefa({
+export function FolhaDaTarefa({
   inicio,
   tarefa,
   colunaInicial,
   objetivoInicial,
+  projetoInicial = null,
   objetivos,
   projetos,
   areas,
@@ -447,6 +514,7 @@ function FolhaDaTarefa({
   tarefa: Tarefa | null
   colunaInicial: Coluna
   objetivoInicial: number | null
+  projetoInicial?: number | null
   objetivos: Objetivo[]
   projetos: ProjetoCurto[]
   areas: AreaCurta[]
@@ -457,13 +525,13 @@ function FolhaDaTarefa({
   const [detalhe, setDetalhe] = useState(tarefa?.detalhe ?? '')
   const [coluna, setColuna] = useState<Coluna>(colunaInicial)
   const [objetivoId, setObjetivoId] = useState<number | null>(objetivoInicial)
-  const [projetoId, setProjetoId] = useState<number | null>(tarefa?.projeto_id ?? null)
+  const [projetoId, setProjetoId] = useState<number | null>(tarefa?.projeto_id ?? projetoInicial)
   const [areaId, setAreaId] = useState<number | null>(tarefa?.area_id ?? null)
   const diasDestaSemana = diasDaSemana(inicio)
   const [dia, setDia] = useState<string | null>(tarefa?.dia && diasDestaSemana.includes(tarefa.dia) ? tarefa.dia : null)
   const [erro, setErro] = useState<string | null>(null)
   const [excluindo, setExcluindo] = useState(false)
-  const projetosVisiveis = projetos.filter((p) => objetivoId === null || p.objetivo_id === objetivoId)
+  const nomeDoProjeto = (p: ProjetoCurto) => (p.cliente ? `${p.cliente} · ${p.nome}` : p.nome)
 
   async function salvar(e: FormEvent) {
     e.preventDefault()
@@ -472,7 +540,7 @@ function FolhaDaTarefa({
     const dados = {
       titulo: titulo.trim(),
       detalhe: detalhe.trim() || null,
-      objetivo_id: objetivoId,
+      objetivo_id: projetoId ? null : objetivoId,
       projeto_id: projetoId,
       area_id: objetivoId || projetoId ? null : areaId,
       semana: naSemana ? inicio : null,
@@ -533,33 +601,30 @@ function FolhaDaTarefa({
           </label>
         )}
         <label>
-          Objetivo do ciclo
+          Projeto
           <select
-            value={objetivoId ?? ''}
-            onChange={(e) => {
-              setObjetivoId(e.target.value ? Number(e.target.value) : null)
-              setProjetoId(null)
-            }}
+            value={projetoId ?? ''}
+            onChange={(e) => setProjetoId(e.target.value ? Number(e.target.value) : null)}
           >
-            <option value="">Nenhum</option>
-            {objetivos.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.titulo}
+            <option value="">Sem projeto</option>
+            {projetos.map((p) => (
+              <option key={p.id} value={p.id}>
+                {nomeDoProjeto(p)}
               </option>
             ))}
           </select>
         </label>
-        {projetosVisiveis.length > 0 && (
+        {projetoId === null && objetivos.length > 0 && (
           <label>
-            Projeto
+            Objetivo do ciclo (sem projeto)
             <select
-              value={projetoId ?? ''}
-              onChange={(e) => setProjetoId(e.target.value ? Number(e.target.value) : null)}
+              value={objetivoId ?? ''}
+              onChange={(e) => setObjetivoId(e.target.value ? Number(e.target.value) : null)}
             >
               <option value="">Nenhum</option>
-              {projetosVisiveis.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nome}
+              {objetivos.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.titulo}
                 </option>
               ))}
             </select>

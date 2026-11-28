@@ -3440,3 +3440,484 @@ h3.titulo-bloco,
 .intencao-da-semana textarea {
   width: 100%;
 }
+
+/* ══ Projetos e Tarefas ═════════════════════════════════════════════════ */
+.titulo-bloco small {
+  margin-left: 6px;
+  color: var(--suave);
+  font-weight: 400;
+}
+
+.itens-da-entrada li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.itens-da-entrada .item {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.decisoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.decisoes .chip-botao {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--controle);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quadro-de-projetos {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .quadro-de-projetos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.cartao-da-tarefa .titulo-da-tarefa .chip,
+.titulo-tela .chip {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.titulo-tela .chip {
+  font-size: 0.875rem;
+}
+
+.sem-proxima-acao {
+  color: var(--ambar-tinta) !important;
+}
+
+.botao-fantasma {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px dashed var(--anel);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--suave);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.faixa-tarefas .navegar-semana {
+  margin-bottom: 4px;
+}
+
+/* ══ Hábitos: acompanhamento em fichas ══════════════════════════════════ */
+.acompanhamento h2 {
+  margin: 0 0 8px;
+}
+
+.fichas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ficha {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--cartao);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.ficha small {
+  color: var(--suave);
+}
+
+.ficha.marcada {
+  border-color: transparent;
+  background: var(--destaque-leve);
+  color: var(--texto-destaque-leve);
+}
+
+.ficha.marcada small {
+  color: var(--texto-destaque-leve);
+}
+
+.graduar {
+  display: block;
+  margin-top: 4px;
+  color: var(--suave);
+  font-size: 0.8125rem;
+}
+
+.cartao-da-tarefa .titulo-da-tarefa .chip,
+.titulo-tela .chip {
+  display: inline-block;
+  width: auto;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* As colunas de projetos aparecem todas, empilhadas no celular. */
+@media (max-width: 1023px) {
+  .coluna-da-semana.coluna-de-projetos {
+    display: block;
+  }
+}
+
+/* ══ Hábitos: filtro de área, camadas e histórico ═══════════════════════ */
+.controles-dos-habitos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.controles-dos-habitos .segmentos {
+  align-self: flex-start;
+}
+
+/* As áreas como fatias: uma linha que rola de lado no celular. */
+.fatias {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.fatias::-webkit-scrollbar {
+  display: none;
+}
+
+.fatias button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--cartao);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.fatias button small {
+  color: var(--suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.fatias button[aria-pressed='true'] {
+  border-color: var(--destaque);
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+}
+
+.fatias button[aria-pressed='true'] small {
+  color: inherit;
+  opacity: 0.8;
+}
+
+@media (min-width: 1024px) {
+  .controles-dos-habitos {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .fatias {
+    flex-wrap: wrap;
+  }
+}
+
+/* Camadas: título, uma frase do que ela é e, em construção, as vagas. */
+.habitos section.camada > h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.habitos .vagas {
+  color: var(--texto-destaque-leve);
+  background: var(--destaque-leve);
+  padding: 1px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.descricao-da-camada {
+  margin: 0 0 8px 2px;
+  color: var(--suave);
+  font-size: 0.8rem;
+}
+
+.habitos section.camada-essencial {
+  margin-top: 18px;
+}
+
+.habitos section.camada-essencial > .linha {
+  box-shadow: inset 3px 0 0 var(--destaque);
+}
+
+.habitos section.camada-base > .linha {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.habitos section.camada-base .linha .nome {
+  font-size: 0.9rem;
+}
+
+.habitos section.camada-livre {
+  margin-top: 22px;
+}
+
+.vazio-da-camada {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--anel);
+  border-radius: 14px;
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+/* O nome do hábito abre o histórico dele. */
+.nome-do-habito {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nome-do-habito:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--anel);
+  text-underline-offset: 3px;
+}
+
+/* Histórico */
+.cabecalho-do-historico {
+  margin-bottom: 12px;
+}
+
+.legenda-historico {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 12px 0 0;
+  color: var(--suave);
+  font-size: 0.75rem;
+}
+
+.legenda-historico .marcas {
+  margin-left: 6px;
+}
+
+.legenda-historico .marcas:first-child {
+  margin-left: 0;
+}
+
+.historico-da-camada {
+  margin-top: 16px;
+}
+
+.historico-lista {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 1024px) {
+  .historico-lista {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+}
+
+.historico-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--cartao);
+  color: var(--texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.historico-cabeca {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 120px;
+}
+
+.historico-nome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.historico-cabeca small {
+  color: var(--suave);
+  font-size: 0.75rem;
+}
+
+.calendario-habito {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Uma coluna por semana, de domingo (no alto) a sábado. */
+.marcas.calendario {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 9px);
+  grid-auto-columns: 9px;
+  gap: 3px;
+}
+
+.marcas.semanas-na-meta {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 9px;
+  gap: 3px;
+  padding-top: 3px;
+  border-top: 1px solid var(--linha);
+}
+
+.marcas.semanas-na-meta i {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.marcas.semanas-na-meta i.atual {
+  outline: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--anel);
+}
+
+.marcas.semanas-na-meta i.atual.feito {
+  background: var(--destaque);
+}
+
+.marcas i.fora {
+  opacity: 0.35;
+}
+
+.marcas i.futuro {
+  background: transparent;
+}
+
+.calendario-habito.grande .marcas.calendario {
+  grid-template-rows: repeat(7, 10px);
+  grid-auto-columns: 10px;
+  gap: 2px;
+}
+
+.calendario-habito.grande .marcas.semanas-na-meta {
+  grid-auto-columns: 10px;
+  gap: 2px;
+}
+
+.calendario-habito.grande .marcas i {
+  width: 10px;
+}
+
+.calendario-habito.grande .marcas.calendario i {
+  height: 10px;
+}
+
+.historico-grande {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+/* A linha de uma medida: traço de 2px, ponto final maior, extremos escritos. */
+.linha-da-medida {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linha-da-medida svg {
+  overflow: visible;
+}
+
+.linha-da-medida .eixo {
+  stroke: var(--linha);
+  stroke-width: 1;
+}
+
+.linha-da-medida .traco {
+  fill: none;
+  stroke: var(--destaque);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.linha-da-medida circle {
+  fill: var(--destaque);
+  stroke: var(--cartao);
+  stroke-width: 1.5;
+}
+
+.linha-da-medida .extremos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--suave);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.historico-grande > * {
+  align-self: flex-start;
+}
+
+.resumo-grande {
+  margin: 0;
+  color: var(--suave);
+  font-size: 0.85rem;
+}
