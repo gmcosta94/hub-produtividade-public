@@ -118,14 +118,35 @@ semanas seguidas recebe a sugestão de passar para acompanhamento.
 A tela de Hábitos (sem tabela nova; lê `v_habito_registro`, `v_habito_semana`
 e `metrica_registro`):
 
-- Filtro de área no alto, em fatias (Todas · cada área com hábito). Fica
-  lembrado no aparelho. As vagas de "em construção" continuam globais.
-- Cada camada tem título e uma frase do que ela é; "Em construção" mostra as
-  vagas (`habitos_essenciais_max`) e aparece mesmo vazia, como vaga aberta.
+- Barra do alto: Dia | Histórico (duas metades iguais), o filtro de áreas
+  numa lista que abre, com mais de uma escolha (nenhuma = todas; fica
+  lembrado no aparelho), e "+ Novo hábito". As vagas de "em construção"
+  continuam globais.
+- As três camadas ficam empilhadas, no mesmo formato de linha, porque
+  qualquer formato (sim ou não, quantidade) cabe em qualquer camada. A
+  hierarquia aparece em três tracinhos no título e na faixa à esquerda das
+  linhas (forte em construção, leve no padrão mínimo, nenhuma no
+  acompanhamento). As fichas de acompanhamento ficaram só em Hoje.
+- Cada camada tem uma frase do que ela é; "Em construção" mostra as vagas
+  (`habitos_essenciais_max`) e aparece mesmo vazia, como vaga aberta.
+- Não há mais lista separada para gerenciar: tocar no nome de um hábito
+  abre a edição, com Guardar e Histórico. Os guardados ficam recolhidos no
+  pé da tela e voltam pela mesma folha. O passo de hábitos do plano do ciclo
+  continua usando o cadastro em lista.
+- A folha do hábito tem também **Excluir**, que apaga o hábito e todo o
+  histórico dele (o banco apaga os registros em cascata), com confirmação na
+  própria folha. Guardar continua sendo o caminho sem perda.
+
+A página de uma área foi reorganizada: a visão de longo prazo aparece
+inteira logo abaixo do nome (com a cor da área, editável no lugar), depois
+quatro números da semana (hábitos marcados, padrão mínimo na meta, foco e
+estudo, projetos ativos) e as seções em cartões com cabeçalho e ação: padrão
+mínimo, objetivo no ciclo e estratégia de um lado; hábitos (com "+ Novo
+hábito" já na área), projetos e tarefas sem projeto, e notas do outro.
 - Modo **Histórico**: um calendário por hábito nas últimas 12 semanas (uma
   coluna por semana, domingo no alto), com a faixa das semanas que bateram a
   meta; medidas como o peso viram uma linha com máximo e mínimo. Tocar num
-  hábito (ou no nome dele, no modo Dia) abre seis meses numa folha. O resumo é
+  hábito no Histórico (ou em Histórico, na folha de edição) abre seis meses numa folha. O resumo é
   neutro ("na meta em 8 de 11 semanas"); não há sequência nem contador de
   falhas.
 

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
-import { CadastroDeHabitos } from './CadastroDeHabitos'
+import { FolhaDoCadastro, type HabitoDoCadastro } from './CadastroDeHabitos'
+import { FiltroDeAreas } from '../componentes/FiltroDeAreas'
+import { useAreas } from '../lib/dados'
 import { FolhaDoHistorico, HistoricoDosHabitos } from './HistoricoDosHabitos'
 import { corDaArea } from '../lib/areas'
 import { Folha } from '../componentes/Folha'
@@ -63,6 +65,7 @@ export type Habito = {
   dias_da_semana: number[] | null
   prioridade: Prioridade
   ordem: number
+  ativo: boolean
   area: { id: number; nome: string; ordem: number }
 }
 
@@ -151,9 +154,18 @@ export function Habitos({
   const [historicoDe, setHistoricoDe] = useState<{ habito: Habito } | { metrica: Metrica } | null>(null)
   // Filtro e modo só existem na tela cheia de Hábitos; embutida, ela segue quem a chamou.
   const comControles = !embutido && areaId === undefined
-  const [areaFiltro, setAreaFiltro] = useState<number | null>(() =>
-    comControles && lembrado('habitos.area') ? Number(lembrado('habitos.area')) : null,
-  )
+  const [areasFiltro, setAreasFiltro] = useState<number[]>(() => {
+    if (!comControles) return []
+    try {
+      const lido = JSON.parse(lembrado('habitos.areas') ?? '[]')
+      return Array.isArray(lido) ? lido.filter((x) => typeof x === 'number') : []
+    } catch {
+      return []
+    }
+  })
+  const areasDaVida = useAreas()
+  const [guardados, setGuardados] = useState<Habito[]>([])
+  const [cadastro, setCadastro] = useState<HabitoDoCadastro | 'novo' | null>(null)
   const [modo, setModo] = useState<'dia' | 'historico'>(() =>
     comControles && lembrado('habitos.modo') === 'historico' ? 'historico' : 'dia',
   )
@@ -205,10 +217,10 @@ export function Habitos({
       supabase
         .from('habito')
         .select(
-          'id, nome, tipo, unidade, comparacao, meta_valor, meta_dias, versao_minima, dias_da_semana, prioridade, ordem, area:area_id (id, nome, ordem)',
+          'id, nome, tipo, unidade, comparacao, meta_valor, meta_dias, versao_minima, dias_da_semana, prioridade, ordem, ativo, area:area_id (id, nome, ordem)',
         )
-        .eq('ativo', true)
-        .order('ordem'),
+        .order('ordem')
+        .order('id'),
       supabase
         .from('metrica')
         .select('id, nome, unidade, ordem, area:area_id (id, nome, ordem)')
@@ -221,7 +233,9 @@ export function Habitos({
         setHabitos([])
         return
       }
-      setHabitos(h.data as unknown as Habito[])
+      const todos = h.data as unknown as Habito[]
+      setHabitos(todos.filter((x) => x.ativo))
+      setGuardados(todos.filter((x) => !x.ativo))
       setMetricas(m.data as unknown as Metrica[])
     })
     return () => {
@@ -311,18 +325,21 @@ export function Habitos({
     areasDoFiltro.set(x.area.id, a)
   }
   const opcoesDeArea = [...areasDoFiltro.entries()].sort((a, b) => a[1].ordem - b[1].ordem)
-  const areaEmTela = areaId ?? (areaFiltro !== null && areasDoFiltro.has(areaFiltro) ? areaFiltro : undefined)
+  // Sem área marcada, mostra todas. A página de uma área passa a dela.
+  const marcadas = areaId !== undefined ? [areaId] : areasFiltro.filter((id) => areasDoFiltro.has(id))
+  const naTela = (id: number) => marcadas.length === 0 || marcadas.includes(id)
+  const comFiltro = marcadas.length > 0
   const emConstrucao = habitos.filter((h) => h.prioridade === 'essencial').length
 
   // Agrupa por área, na ordem das áreas; métricas vêm depois dos hábitos da área.
   const areas = new Map<string, { ordem: number; habitos: Habito[]; metricas: Metrica[] }>()
   // Sem filtro, "Em construção" aparece mesmo vazia: é a vaga à espera do próximo hábito.
-  if (agruparPor === 'peso' && comControles && areaEmTela === undefined)
+  if (agruparPor === 'peso' && comControles && !comFiltro)
     areas.set(GRUPO_DO_PESO.essencial, { ordem: 0, habitos: [], metricas: [] })
   // Dentro do grupo, os essenciais vêm primeiro.
   const porPeso = [...habitos].sort((a, b) => PESOS.indexOf(a.prioridade) - PESOS.indexOf(b.prioridade))
   for (const h of porPeso) {
-    if (areaEmTela !== undefined && h.area.id !== areaEmTela) continue
+    if (!naTela(h.area.id)) continue
     const [nome, ordem] =
       agruparPor === 'peso' ? [GRUPO_DO_PESO[h.prioridade], PESOS.indexOf(h.prioridade)] : [h.area.nome, h.area.ordem]
     const g = areas.get(nome) ?? { ordem, habitos: [], metricas: [] }
@@ -331,7 +348,7 @@ export function Habitos({
   }
   // Métrica é sempre acompanhamento.
   for (const m of metricas) {
-    if (areaEmTela !== undefined && m.area.id !== areaEmTela) continue
+    if (!naTela(m.area.id)) continue
     const [nome, ordem] =
       agruparPor === 'peso' ? [GRUPO_DO_PESO.livre, PESOS.indexOf('livre')] : [m.area.nome, m.area.ordem]
     const g = areas.get(nome) ?? { ordem, habitos: [], metricas: [] }
@@ -408,36 +425,21 @@ export function Habitos({
               </button>
             ))}
           </div>
-          {opcoesDeArea.length > 1 && (
-            <div className="fatias" role="group" aria-label="Filtrar por área">
-              <button
-                type="button"
-                aria-pressed={areaEmTela === undefined}
-                onClick={() => {
-                  setAreaFiltro(null)
-                  lembrar('habitos.area', null)
+          <div className="filtro-e-novo">
+            {opcoesDeArea.length > 1 && (
+              <FiltroDeAreas
+                opcoes={opcoesDeArea.map(([id, a]) => ({ id, nome: a.nome, quantos: a.quantos }))}
+                marcadas={marcadas}
+                aoMudar={(ids) => {
+                  setAreasFiltro(ids)
+                  lembrar('habitos.areas', ids.length ? JSON.stringify(ids) : null)
                 }}
-              >
-                Todas
-              </button>
-              {opcoesDeArea.map(([id, a]) => (
-                <button
-                  key={id}
-                  type="button"
-                  aria-pressed={areaEmTela === id}
-                  onClick={() => {
-                    const novo = areaEmTela === id ? null : id
-                    setAreaFiltro(novo)
-                    lembrar('habitos.area', novo === null ? null : String(novo))
-                  }}
-                >
-                  <i className="ponto-da-area" style={{ background: corDaArea(a.nome) }} />
-                  {a.nome}
-                  <small>{a.quantos}</small>
-                </button>
-              ))}
-            </div>
-          )}
+              />
+            )}
+            <button type="button" className="botao principal novo-habito" onClick={() => setCadastro('novo')}>
+              + Novo hábito
+            </button>
+          </div>
         </div>
       )}
 
@@ -476,13 +478,17 @@ export function Habitos({
 
           {grupos.length === 0 && (
             <p className="vazio">
-              {areaEmTela === undefined ? 'Nenhum hábito cadastrado ainda.' : 'Esta área ainda não tem hábitos.'}
+              {areaId !== undefined
+                ? 'Esta área ainda não tem hábitos.'
+                : !comFiltro
+                  ? 'Nenhum hábito cadastrado ainda.'
+                  : 'Nenhum hábito nas áreas escolhidas.'}
             </p>
           )}
 
           <div className="grupos">
             {grupos.map(([area, g]) =>
-              agruparPor === 'peso' && area === GRUPO_DO_PESO.livre ? (
+              soHoje && agruparPor === 'peso' && area === GRUPO_DO_PESO.livre ? (
                 <section key={area} className="acompanhamento camada camada-livre">
                   <h2>{area}</h2>
                   {comControles && <p className="descricao-da-camada">{DESCRICAO_DO_PESO.livre}</p>}
@@ -540,6 +546,9 @@ export function Habitos({
                   recolhido={false}
                   quantos={g.habitos.length + g.metricas.length}
                   classe={agruparPor === 'peso' ? `camada camada-${pesoDoGrupo(area)}` : undefined}
+                  nivel={
+                    comControles && agruparPor === 'peso' ? 3 - PESOS.indexOf(pesoDoGrupo(area) ?? 'livre') : undefined
+                  }
                   detalhe={
                     comControles && pesoDoGrupo(area) === 'essencial' && vagas !== null
                       ? `${emConstrucao} de ${vagas} vagas`
@@ -562,18 +571,23 @@ export function Habitos({
                       <div key={h.id} className="linha">
                         <div className="rotulo">
                           <span className="nome">
-                            {agruparPor === 'peso' && areaId === undefined && (
-                              <i className="ponto-da-area" style={{ background: corDaArea(h.area.nome) }} />
-                            )}
                             {soHoje ? (
-                              h.nome
+                              <>
+                                {agruparPor === 'peso' && areaId === undefined && (
+                                  <i className="ponto-da-area" style={{ background: corDaArea(h.area.nome) }} />
+                                )}
+                                {h.nome}
+                              </>
                             ) : (
                               <button
                                 type="button"
                                 className="nome-do-habito"
-                                aria-label={`Histórico de ${h.nome}`}
-                                onClick={() => setHistoricoDe({ habito: h })}
+                                aria-label={`Editar ${h.nome}`}
+                                onClick={() => setCadastro(paraCadastro(h))}
                               >
+                                {agruparPor === 'peso' && areaId === undefined && (
+                                  <i className="ponto-da-area" style={{ background: corDaArea(h.area.nome) }} />
+                                )}
                                 {h.nome}
                               </button>
                             )}
@@ -733,13 +747,54 @@ export function Habitos({
           acompanhamento, abrindo a vaga para o próximo.
         </p>
         <p>
-          O filtro de área mostra só os hábitos de uma área. Em Histórico, cada hábito aparece como um calendário das
-          últimas semanas (uma coluna por semana, de domingo a sábado) e, se tem meta, uma faixa embaixo com as semanas
-          em que ela foi cumprida. Tocar no nome de um hábito abre seis meses.
+          Toque no nome de um hábito para editar, guardar ou ver o histórico dele. O filtro de áreas aceita mais de uma.
+          Em Histórico, cada hábito aparece como um calendário das últimas semanas (uma coluna por semana, de domingo a
+          sábado) e, se tem meta, uma faixa embaixo com as semanas em que ela foi cumprida. Tocar no nome de um hábito
+          abre seis meses.
         </p>
       </details>
 
-      {!embutido && <CadastroDeHabitos aoMudar={() => setVersaoDoCadastro((v) => v + 1)} />}
+      {comControles && guardados.length > 0 && (
+        <details className="guardados">
+          <summary>Guardados ({guardados.length})</summary>
+          <ul className="lista">
+            {guardados.map((h) => (
+              <li key={h.id}>
+                <button type="button" className="item" onClick={() => setCadastro(paraCadastro(h))}>
+                  <span>
+                    <i className="ponto-da-area" style={{ background: corDaArea(h.area.nome) }} />
+                    {h.nome}
+                  </span>
+                  <small>{h.area.nome}</small>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
+      {cadastro && (
+        <FolhaDoCadastro
+          key={cadastro === 'novo' ? 'novo' : cadastro.id}
+          habito={cadastro === 'novo' ? null : cadastro}
+          areas={areasDaVida}
+          ordem={habitos.length + guardados.length + 1}
+          aoFechar={() => setCadastro(null)}
+          aoSalvar={() => {
+            setCadastro(null)
+            setVersaoDoCadastro((v) => v + 1)
+          }}
+          aoVerHistorico={
+            cadastro === 'novo'
+              ? undefined
+              : () => {
+                  const h = [...habitos, ...guardados].find((x) => x.id === cadastro.id)
+                  setCadastro(null)
+                  if (h) setHistoricoDe({ habito: h })
+                }
+          }
+        />
+      )}
 
       {historicoDe && (
         <FolhaDoHistorico alvo={historicoDe} versao={versaoDoCadastro} aoFechar={() => setHistoricoDe(null)} />
@@ -784,6 +839,7 @@ function Grupo({
   classe,
   detalhe,
   descricao,
+  nivel,
   children,
 }: {
   titulo: string | null
@@ -792,6 +848,7 @@ function Grupo({
   classe?: string
   detalhe?: string
   descricao?: string
+  nivel?: number
   children: ReactNode
 }) {
   if (recolhido) {
@@ -808,6 +865,13 @@ function Grupo({
     <section className={classe}>
       {titulo && (
         <h2>
+          {nivel !== undefined && (
+            <span className="nivel" aria-hidden="true">
+              {[1, 2, 3].map((n) => (
+                <i key={n} className={n <= nivel ? 'cheio' : undefined} />
+              ))}
+            </span>
+          )}
           {titulo}
           {detalhe && <span className="vagas">{detalhe}</span>}
         </h2>
@@ -816,6 +880,22 @@ function Grupo({
       {children}
     </section>
   )
+}
+
+function paraCadastro(h: Habito): HabitoDoCadastro {
+  return {
+    id: h.id,
+    nome: h.nome,
+    area_id: h.area.id,
+    tipo: h.tipo,
+    unidade: h.unidade,
+    comparacao: h.comparacao,
+    meta_valor: h.meta_valor,
+    meta_dias: h.meta_dias,
+    versao_minima: h.versao_minima,
+    prioridade: h.prioridade,
+    ativo: h.ativo,
+  }
 }
 
 function pesoDoGrupo(titulo: string): Prioridade | undefined {

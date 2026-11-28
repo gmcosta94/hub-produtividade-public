@@ -3585,72 +3585,200 @@ h3.titulo-bloco,
   }
 }
 
-/* ══ Hábitos: filtro de área, camadas e histórico ═══════════════════════ */
+/* ══ Hábitos: barra do alto, camadas e histórico ═══════════════════════ */
+/* Dia | Histórico (duas metades iguais) · filtro de áreas · novo hábito */
 .controles-dos-habitos {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
   margin-bottom: 4px;
 }
 
-.controles-dos-habitos .segmentos {
-  align-self: flex-start;
+.controles-dos-habitos > .segmentos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 0 0 220px;
 }
 
-/* As áreas como fatias: uma linha que rola de lado no celular. */
-.fatias {
+.controles-dos-habitos > .segmentos button {
+  padding: 7px 10px;
+  font-size: 0.9rem;
+}
+
+.filtro-e-novo {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: none;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 260px;
+  min-width: 0;
 }
 
-.fatias::-webkit-scrollbar {
-  display: none;
-}
-
-.fatias button {
+.novo-habito {
+  margin-left: auto;
   flex: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .controles-dos-habitos > .segmentos {
+    flex: 1 1 100%;
+  }
+}
+
+.filtro-de-areas {
+  position: relative;
+  min-width: 0;
+}
+
+.filtro-de-areas .gatilho {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 8px;
+  max-width: 100%;
+  padding: 8px 12px;
   border: 1px solid var(--linha);
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--cartao);
   color: var(--texto);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
-.fatias button small {
+.filtro-de-areas .gatilho.com-filtro {
+  border-color: var(--destaque);
+}
+
+.filtro-de-areas .pontos {
+  display: inline-flex;
+}
+
+.filtro-de-areas .pontos i + i {
+  margin-left: -3px;
+  box-shadow: 0 0 0 1.5px var(--cartao);
+}
+
+.rotulo-do-filtro {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filtro-de-areas .seta {
+  color: var(--suave);
+  font-size: 0.75rem;
+}
+
+.painel-do-filtro {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  background: var(--cartao);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.painel-do-filtro label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.painel-do-filtro label:hover {
+  background: var(--controle);
+}
+
+.painel-do-filtro label span {
+  flex: 1;
+}
+
+.painel-do-filtro label small {
   color: var(--suave);
   font-variant-numeric: tabular-nums;
 }
 
-.fatias button[aria-pressed='true'] {
-  border-color: var(--destaque);
+.painel-do-filtro input {
+  margin: 0;
+  accent-color: var(--destaque);
+}
+
+.painel-do-filtro .link {
+  align-self: flex-start;
+  margin: 4px 8px 2px;
+}
+
+.painel-do-filtro .link:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* As três camadas empilhadas, no mesmo formato. */
+.habitos:not(.embutido) .grupos {
+  display: block;
+  max-width: 760px;
+}
+
+/* A hierarquia: três tracinhos no título e a faixa à esquerda das linhas. */
+.habitos .nivel {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+}
+
+.habitos .nivel i {
+  width: 3px;
+  border-radius: 1px;
+  background: var(--linha);
+}
+
+.habitos .nivel i:nth-child(1) {
+  height: 4px;
+}
+
+.habitos .nivel i:nth-child(2) {
+  height: 7px;
+}
+
+.habitos .nivel i:nth-child(3) {
+  height: 10px;
+}
+
+.habitos .nivel i.cheio {
   background: var(--destaque);
-  color: var(--sobre-destaque);
 }
 
-.fatias button[aria-pressed='true'] small {
-  color: inherit;
-  opacity: 0.8;
+.guardados {
+  margin-top: 18px;
+  max-width: 760px;
 }
 
-@media (min-width: 1024px) {
-  .controles-dos-habitos {
-    flex-direction: row;
-    align-items: center;
-    gap: 14px;
-  }
+.guardados > summary {
+  color: var(--suave);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
 
-  .fatias {
-    flex-wrap: wrap;
-  }
+.guardados .lista {
+  margin-top: 8px;
+}
+
+.guardados .item span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--suave);
 }
 
 /* Camadas: título, uma frase do que ela é e, em construção, as vagas. */
@@ -3685,16 +3813,7 @@ h3.titulo-bloco,
 }
 
 .habitos section.camada-base > .linha {
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.habitos section.camada-base .linha .nome {
-  font-size: 0.9rem;
-}
-
-.habitos section.camada-livre {
-  margin-top: 22px;
+  box-shadow: inset 3px 0 0 var(--destaque-leve);
 }
 
 .vazio-da-camada {
@@ -3920,4 +4039,305 @@ h3.titulo-bloco,
   margin: 0;
   color: var(--suave);
   font-size: 0.85rem;
+}
+
+.linha .nome .nome-do-habito {
+  display: inline;
+}
+
+/* Folha do hábito: Excluir à esquerda, em vermelho, e a confirmação acima dos botões. */
+.folha .acoes button.excluir {
+  margin-right: auto;
+  color: var(--alerta);
+}
+
+.confirmar-exclusao {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--alerta);
+  border-radius: 12px;
+}
+
+.confirmar-exclusao p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* ══ Página da área ═════════════════════════════════════════════════════ */
+.topo-da-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  margin: 4px 0 14px;
+}
+
+.nome-da-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nome-da-area .titulo-tela {
+  margin: 0;
+}
+
+.nome-da-area .ponto-da-area {
+  width: 12px;
+  height: 12px;
+}
+
+.modo-da-area {
+  flex: 0 1 340px;
+}
+
+.modo-da-area button {
+  padding: 7px 10px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 767px) {
+  .modo-da-area {
+    flex-basis: 100%;
+  }
+}
+
+.rever-pausa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: var(--suave);
+  font-size: 0.875rem;
+}
+
+/* A visão: o norte, inteira, com a cor da área à esquerda. */
+.visao-da-area {
+  display: block;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 16px 20px;
+  border: 0;
+  border-left: 4px solid var(--cor-da-area, var(--destaque));
+  border-radius: 14px;
+  background: var(--cartao);
+  color: var(--texto);
+  font: inherit;
+  text-align: left;
+}
+
+.visao-da-area header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.visao-da-area h2 {
+  margin: 0 0 8px;
+  color: var(--suave);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.visao-da-area .texto {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.visao-da-area .texto > :first-child {
+  margin-top: 0;
+}
+
+.visao-da-area .texto > :last-child {
+  margin-bottom: 0;
+}
+
+.visao-da-area.vazia {
+  border: 1px dashed var(--anel);
+  border-left: 4px solid var(--cor-da-area, var(--destaque));
+  background: transparent;
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.visao-da-area.editando textarea {
+  width: 100%;
+  font: inherit;
+  line-height: 1.5;
+}
+
+.visao-da-area .botoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Os números da semana, em quatro quadros. */
+.numeros-da-area {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 20px;
+}
+
+@media (min-width: 768px) {
+  .numeros-da-area {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.numeros-da-area > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--cartao);
+}
+
+.numeros-da-area dt {
+  color: var(--suave);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.numeros-da-area dd {
+  margin: 2px 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.numeros-da-area dd .de {
+  color: var(--suave);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.numeros-da-area small,
+.numeros-da-area .link {
+  color: var(--suave);
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.numeros-da-area .link {
+  align-self: flex-start;
+  color: var(--destaque);
+}
+
+/* Cada seção: cabeçalho com ação à direita e um traço por baixo. */
+.secao-da-area {
+  margin-bottom: 16px;
+  padding: 14px 16px 16px;
+  border-radius: 14px;
+  background: var(--cartao);
+}
+
+.secao-da-area > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin: -2px 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.secao-da-area > header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.acoes-da-secao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.botao.pequeno {
+  padding: 5px 10px;
+  font-size: 0.8125rem;
+}
+
+.secao-da-area .lista {
+  margin: 0;
+  background: transparent;
+}
+
+.secao-da-area .lista .item {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.secao-da-area label.sem-rotulo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.secao-da-area textarea {
+  width: 100%;
+  font: inherit;
+}
+
+.secao-da-area .ajuda {
+  margin: 6px 0 0;
+}
+
+.secao-da-area .vazio.pequeno {
+  margin: 0;
+  text-align: left;
+}
+
+.objetivo-da-area {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.subtitulo-da-secao {
+  margin: 14px 0 4px;
+  color: var(--suave);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Hábitos embutidos numa seção: sem fundo próprio, as linhas com traço. */
+.secao-da-area .habitos.embutido section > .linha {
+  background: var(--fundo);
+}
+
+@media (min-width: 1024px) {
+  .pagina-da-area .colunas {
+    gap: 16px;
+  }
+
+  .pagina-da-area .coluna > .secao-da-area:first-child {
+    margin-top: 0;
+  }
+}
+
+.secao-da-area .habitos .semana .titulo-tela {
+  font-size: 1.15rem;
+}
+
+.secao-da-area .habitos .semana > button {
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+}
+
+.folha .acoes {
+  flex-wrap: wrap;
 }

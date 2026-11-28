@@ -24,7 +24,7 @@ const PESOS: { id: Prioridade; nome: string; ajuda: string }[] = [
     ajuda: 'Registro quando der, sem pendência nem cobrança: suplementos, passos, peso.',
   },
 ]
-type Habito = {
+export type HabitoDoCadastro = {
   id: number
   nome: string
   area_id: number
@@ -43,7 +43,7 @@ type Habito = {
 // Desativar guarda o hábito com o histórico: ele pode voltar quando quiser.
 export function CadastroDeHabitos({ aoMudar, sempreAberto = false }: { aoMudar: () => void; sempreAberto?: boolean }) {
   const areas = useAreas()
-  const habitos = useConsulta<Habito[]>(() =>
+  const habitos = useConsulta<HabitoDoCadastro[]>(() =>
     supabase
       .from('habito')
       .select('id, nome, area_id, tipo, unidade, comparacao, meta_valor, meta_dias, versao_minima, prioridade, ativo')
@@ -51,7 +51,7 @@ export function CadastroDeHabitos({ aoMudar, sempreAberto = false }: { aoMudar: 
       .order('id'),
   )
   const [abertoAgora, setAberto] = useState(false)
-  const [editando, setEditando] = useState<Habito | 'novo' | null>(null)
+  const [editando, setEditando] = useState<HabitoDoCadastro | 'novo' | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const aberto = sempreAberto || abertoAgora
   const lista = habitos.dados ?? []
@@ -66,14 +66,14 @@ export function CadastroDeHabitos({ aoMudar, sempreAberto = false }: { aoMudar: 
     )
   }
 
-  async function alternarAtivo(h: Habito) {
+  async function alternarAtivo(h: HabitoDoCadastro) {
     const { error } = await supabase.from('habito').update({ ativo: !h.ativo }).eq('id', h.id)
     setErro(error ? textoDoErro(error, 'Não foi possível mudar o hábito.') : null)
     habitos.recarregar()
     aoMudar()
   }
 
-  const grupos: { titulo: string; itens: Habito[] }[] = [
+  const grupos: { titulo: string; itens: HabitoDoCadastro[] }[] = [
     ...PESOS.map((p) => ({ titulo: p.nome, itens: lista.filter((h) => h.ativo && h.prioridade === p.id) })),
     { titulo: 'Guardados', itens: lista.filter((h) => !h.ativo) },
   ]
@@ -144,21 +144,26 @@ export function CadastroDeHabitos({ aoMudar, sempreAberto = false }: { aoMudar: 
   )
 }
 
-function FolhaDoCadastro({
+// Também é o que abre ao tocar num hábito na tela de Hábitos, com Guardar e Histórico.
+export function FolhaDoCadastro({
   habito,
   areas,
   ordem,
   aoFechar,
   aoSalvar,
+  aoVerHistorico,
+  areaInicial,
 }: {
-  habito: Habito | null
+  habito: HabitoDoCadastro | null
   areas: Area[]
   ordem: number
   aoFechar: () => void
   aoSalvar: () => void
+  aoVerHistorico?: () => void
+  areaInicial?: number
 }) {
   const [nome, setNome] = useState(habito?.nome ?? '')
-  const [areaId, setAreaId] = useState<number | null>(habito?.area_id ?? null)
+  const [areaId, setAreaId] = useState<number | null>(habito?.area_id ?? areaInicial ?? null)
   const [tipo, setTipo] = useState<Tipo>(habito?.tipo ?? 'sim_nao')
   const [unidade, setUnidade] = useState(habito?.unidade ?? '')
   const [comparacao, setComparacao] = useState<Comparacao | ''>(
@@ -168,7 +173,6 @@ function FolhaDoCadastro({
   const [metaDias, setMetaDias] = useState<number | null>(habito?.meta_dias ?? null)
   const [minima, setMinima] = useState(habito?.versao_minima ?? '')
   const [prioridade, setPrioridade] = useState<Prioridade>(habito?.prioridade ?? 'livre')
-  const [ativo, setAtivo] = useState(habito?.ativo ?? true)
   const [erro, setErro] = useState<string | null>(null)
   // O formato só muda enquanto o hábito não tem registros (o banco também confere).
   const registros = useConsulta<number>(async () => {
@@ -180,6 +184,23 @@ function FolhaDoCadastro({
     return { data: count ?? 0, error }
   }, [habito?.id])
   const formatoLivre = !habito || registros.dados === 0
+
+  // Excluir apaga o hábito e todo o histórico dele (o banco apaga os registros junto).
+  // Pede confirmação na própria folha, porque não tem volta.
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false)
+  async function excluir() {
+    if (!habito) return
+    const { error } = await supabase.from('habito').delete().eq('id', habito.id)
+    if (error) return setErro(textoDoErro(error, 'Não foi possível excluir o hábito.'))
+    aoSalvar()
+  }
+
+  async function alternarAtivo() {
+    if (!habito) return
+    const { error } = await supabase.from('habito').update({ ativo: !habito.ativo }).eq('id', habito.id)
+    if (error) return setErro(textoDoErro(error, 'Não foi possível mudar o hábito.'))
+    aoSalvar()
+  }
 
   async function salvar(e: FormEvent) {
     e.preventDefault()
@@ -202,7 +223,6 @@ function FolhaDoCadastro({
       meta_dias: metaDias,
       versao_minima: minima.trim() || null,
       prioridade,
-      ativo,
     }
     const { error } = habito
       ? await supabase
@@ -324,14 +344,51 @@ function FolhaDoCadastro({
           Versão mínima: o que vale num dia ruim
           <input value={minima} onChange={(e) => setMinima(e.target.value)} />
         </label>
-        {habito && (
-          <label className="marcavel">
-            <input type="checkbox" checked={ativo} onChange={(e) => setAtivo(e.target.checked)} />
-            <span>Ativo (desmarque para tirar da lista sem perder o histórico)</span>
-          </label>
-        )}
         {erro && <p className="erro">{erro}</p>}
+        {habito && (
+          <p className="ajuda">
+            {habito.ativo
+              ? 'Guardar tira o hábito da lista sem perder o histórico; ele pode voltar quando quiser.'
+              : 'Este hábito está guardado. Volte com ele para a lista quando quiser.'}
+          </p>
+        )}
+        {habito && confirmarExclusao && (
+          <div
+            className="confirmar-exclusao"
+            role="alert"
+            ref={(el) => el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })}
+          >
+            <p>
+              Excluir "{habito.nome}" apaga o hábito e todo o histórico dele
+              {registros.dados ? ` (${registros.dados} ${registros.dados === 1 ? 'registro' : 'registros'})` : ''}. Não
+              dá para desfazer. Se for só tirar da lista, use Guardar.
+            </p>
+            <div className="acoes">
+              <button type="button" onClick={() => setConfirmarExclusao(false)}>
+                Manter
+              </button>
+              <button type="button" className="perigo" onClick={excluir}>
+                Excluir de vez
+              </button>
+            </div>
+          </div>
+        )}
         <div className="acoes">
+          {habito && (
+            <button type="button" className="excluir" onClick={() => setConfirmarExclusao(true)}>
+              Excluir
+            </button>
+          )}
+          {habito && (
+            <button type="button" onClick={alternarAtivo}>
+              {habito.ativo ? 'Guardar' : 'Voltar para a lista'}
+            </button>
+          )}
+          {aoVerHistorico && (
+            <button type="button" onClick={aoVerHistorico}>
+              Histórico
+            </button>
+          )}
           <button type="button" onClick={aoFechar}>
             Cancelar
           </button>
