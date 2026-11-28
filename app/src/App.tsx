@@ -32,6 +32,19 @@ const NA_BARRA: Tela[] = ['hoje', 'habitos', 'tarefas', 'notas']
 const telaDoMenu = (t: Tela): Tela => (t === 'foco' ? 'hoje' : t)
 const grupoDa = (t: Tela): Grupo => TELAS.find((x) => x.id === telaDoMenu(t))?.grupo ?? 'dia'
 
+// A tela aberta fica no endereço (#/areas/3, #/habitos?dia=2026-11-27): recarregar
+// a página volta para ela, e o Voltar do navegador anda entre as telas. Como no hub financeiro.
+const TODAS: Tela[] = ['hoje', 'habitos', 'tarefas', 'notas', 'areas', 'plano', 'assistente', 'sistema', 'foco']
+function enderecoDa(r: Rota): string {
+  const dia = r.dia ? `?dia=${r.dia}` : ''
+  return `#/${r.tela}${r.id !== undefined ? `/${r.id}` : ''}${dia}`
+}
+function rotaDoEndereco(): Rota {
+  const m = window.location.hash.match(/^#\/([a-z]+)(?:\/(\d+))?(?:\?dia=(\d{4}-\d{2}-\d{2}))?$/)
+  if (!m || !TODAS.includes(m[1] as Tela)) return { tela: 'hoje' }
+  return { tela: m[1] as Tela, id: m[2] ? Number(m[2]) : undefined, dia: m[3] }
+}
+
 export default function App() {
   // undefined = ainda verificando; null = sem login.
   const [sessao, setSessao] = useState<Session | null | undefined>(undefined)
@@ -39,12 +52,19 @@ export default function App() {
   // é quem barra de fato, aqui é só para mostrar um aviso em vez de telas vazias.
   const [membro, setMembro] = useState<{ userId: string; ok: boolean } | null>(null)
   // Os módulos se chamam por aqui: uma área abre um projeto, um projeto abre uma nota.
-  const [rota, setRota] = useState<Rota>({ tela: 'hoje' })
+  const [rota, setRota] = useState<Rota>(rotaDoEndereco)
   const [mais, setMais] = useState(false)
   const ir = useCallback((r: Rota) => {
     setRota(r)
     setMais(false)
     window.scrollTo(0, 0)
+    const alvo = enderecoDa(r)
+    if (window.location.hash !== alvo) window.history.pushState(null, '', alvo)
+  }, [])
+  useEffect(() => {
+    const voltar = () => setRota(rotaDoEndereco())
+    window.addEventListener('popstate', voltar)
+    return () => window.removeEventListener('popstate', voltar)
   }, [])
 
   useEffect(() => {

@@ -10,7 +10,7 @@ React + TypeScript (PWA) · Postgres/Supabase com RLS · Edge Functions em Deno 
   <img src="docs/imagens/plano-semana.png" alt="Plano semanal: objetivos do ciclo no alto e quadro Backlog, A fazer, Fazendo e Feito" width="860">
 </p>
 
-> Vitrine pública. O desenvolvimento acontece num repositório privado desde 16/11/2026 (23 commits até esta atualização); aqui ficam o código, os documentos de decisão e as telas, sem o conteúdo pessoal.
+> Vitrine pública. O desenvolvimento acontece num repositório privado desde 16/11/2026 (24 commits até esta atualização); aqui ficam o código, os documentos de decisão e as telas, sem o conteúdo pessoal.
 
 ## O problema
 
